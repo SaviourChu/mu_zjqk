@@ -1,0 +1,117 @@
+<script type="text/javascript" src="${base}/js/dateui.js"></script>
+<link rel="stylesheet" type="text/css" href="${base}/css/ym_table.css">
+<script type="text/javascript" src="${base}/js/jquery.edatagrid.js"></script>
+
+<div id="cd_search" class="easyui-panel" title="请款单号的店铺和收款账户信息" style="width:100%;height:28%;pacding:8px;">
+	<label class="label-top">店铺名称:</label> 
+	<select class="easyui-combobox" name="cdsName" id="cdsName" data-options="width:150">
+		<option value="" selected="selected">全部</option>
+		<#list stores as s>
+			<option>${s.sName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;
+	<label class="label-top">收款账户名称:</label> 
+	<select class="easyui-combobox" name="cdaName" id="cdaName" data-options="width:150">
+		<option value="" selected="selected">全部</option>
+		<#list accounts as a>
+			<option>${a.aName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;<br>
+	<label class="label-top">付款项目名称:</label> 
+	<select class="easyui-combobox" name="cdiName" id="cdiName" data-options="width:150">
+		<option value="" selected="selected">全部</option>
+		<#list cItems as ci>
+			<option>${ci.ciName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;
+	<label class="label-top">初始化费用:</label>
+	<input class="easyui-textbox" type="text" id="initFee" name="initFee" data-options="editable:false"/>&nbsp;&nbsp;<br>
+	<label class="label-top">输入费用(<span style="color:red;">没有填写默认是初始化费用</span>):</label>
+	<input class="easyui-textbox" type="text" id="cdMoney" name="cdMoney"/>
+	<label class="label-top">备注:</label>
+	<input class="easyui-textbox" type="text" id="cdRemarks" name="cdRemarks"/>
+	<a href="#" class="easyui-linkbutton" onclick="cd_search();" data-options="iconCls:'icon-add'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="cd_add();" data-options="iconCls:'icon-add'">添加</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="cd_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="cd_panel" class="easyui-panel" title="周期性请款明细列表" style="width:100%;height:66%;padding:3px;">
+	<div id="cd_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-reload',plain:true" onclick="cd_refresh()">刷新</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#cd_datagrid').edatagrid('addRow')" data-options="iconCls:'icon-add',plain:true">添加</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#cd_datagrid').edatagrid('saveRow')" data-options="iconCls:'icon-save',plain:true">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#cd_datagrid').edatagrid('cancelRow')" data-options="iconCls:'icon-undo',plain:true">取消</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="cd_delete()">删除</a>
+	</div>
+	<table id="cd_datagrid" class="easyui-datagrid" style="width:100%;padding: 3px;"
+		data-options="toolbar:'#cd_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/cycDetails/list',singleSelect:true" >
+		<thead>
+			<tr>
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'ciName',width:'20%'">周期性费用项名称</th>
+				<th data-options="field:'initFee',width:'12%'">初始化金额</th>
+				<th data-options="field:'money',width:'12%'">实际金额</th>
+				<th data-options="field:'remarks',width:'20%'">备注</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<style>
+	#cd_dlg{
+		width: 580px;
+		height: 240px;
+		padding: 20px 20px;
+	}
+	.lwrb{
+	    width: 77px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function cd_delete() {
+		var row = $('#cd_datagrid').datagrid('getSelected');
+		if (row) {
+			$.messager.confirm("操作提示", "您确定要删除这条记录吗？", function(data){
+				if(data){
+					$.post("${base}/cycDetails/delete", {
+						"id" : row.id
+					}, function() {
+						cd_refresh();
+					}, "json")
+				}
+			});
+		} else {
+			promptMsg();
+		}
+	}
+	function cd_refresh() {
+		$('#cd_datagrid').datagrid('reload', {});
+	}
+	function cd_cleanSearch(){
+		$('#cd_datagrid').datagrid('load', {});
+		$('#cd_search').find('input').val('');
+	}
+	function cd_search(){
+		var sName = $('#cdsName').combobox('getValue');
+		var ciName = $('#cdiName').combobox('getValue');
+		if(sName && ciName){
+			$.post("${base}/cycDetails/findInitFee", {"sName" : sName,"ciName" : ciName},function(data){
+				$('#initFee').textbox("setValue",data);
+			});
+		}
+	}
+	function cd_add(){
+		var sName = $('#cdsName').combobox('getValue');
+		var ciName = $('#cdiName').combobox('getValue');
+		var aName = $('#cdaName').combobox('getValue');
+		var money = $('#cdMoney').textbox('getValue');
+		var remarks = $('#remarks').textbox('getValue');
+		if(sName && ciName && aName){
+			$.post("${base}/cycDetails/saveOrUpdate",{"sName":sName,"ciName":ciName,"aName":aName,"money":money,"remarks":remarks});
+		}
+		cd_refresh();
+	}
+
+</script>

@@ -1,0 +1,159 @@
+<style type="text/css">
+	.sysmenu_fitem span {
+		display:-moz-inline-box;
+		display:inline-block;
+		text-align:right;
+		width:100px; 
+	}
+</style>
+<div class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width: 100%;">
+    <form id="tip_info_from">
+        <table class="doc-table">
+            <tr>
+	        	<td class="td-label">一级菜单： 
+                	<select class="easyui-combobox" id="sysmenu_select" data-options="required:true" style="width: 200px;">
+					   <#list menus as m>
+							<option value="${m.id!}">${m.name!}</option>
+					   </#list>
+					</select>
+				</td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+<div class="easyui-panel" title="菜单列表" style="width:100%;height:100%;padding:3px;">
+	<div style="padding:2px 2px;">
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-reload" onclick="sysmenu_refresh()" plain="true" >刷新</a>
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-add" onclick="sysmenu_add()" plain="true" >添加目录</a>
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-edit" onclick="sysmenu_update()" plain="true" >修改目录</a>
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-remove" onclick="sysmenu_del()" plain="true" >删除目录</a>
+	   </div>
+	<table id="menu_grid" url="${base}/security/menu/findAll" class="easyui-datagrid" style="width:100%;height:90%"
+		data-options="pageSize:30,fitColumns:true,pagination:true,singleSelect:true,rownumbers:true ">
+	    <thead>
+	        <tr>
+	            <th data-options="field:'id',width:'5%',hidden:'true'">序号</th>
+	            <th field="name" width="100" >菜单名称</th>
+	            <th field="parentMenu" width="100">父级菜单</th>
+	            <th field="url" width="100">请求路径</th>
+	            <th field="description" width="100">菜单描述</th>
+	        </tr>
+	    </thead>
+	</table>
+	<div id="sysmenu_add" class="easyui-dialog" title="添加新菜单" closed="true" buttons="#sysmenu_button" style="width:550px;height:280px;padding:10px 50px">
+	    <form id="sysmenu_form" style="margin-top: 40px;" method="post" enctype="multipart/form-data">
+	        <div class="sysmenu_fitem">
+	            <span>请求路径:</span>
+	            <input class="easyui-textbox" type="text" name="url" style="width: 200px;"/><br>
+	            <span>菜单名称:</span> 
+	            <input class="easyui-textbox" type="text" name="name" style="width: 200px;"/><br>
+	            <span>父级菜单:</span>
+	            <select class="easyui-combobox" name="parentMenu" data-options="width:200,required:true,editable:false">
+	            <#list menus as m>
+					<option value="${m.id!}">${m.name!}</option>
+				</#list>
+				</select><br>
+	            <span>菜单描述:</span>
+	            <input class="easyui-textbox" type="text" name="description" style="width: 200px;"/><br>
+	            <input type="hidden" id="menu_index_key" name="id"/>
+	        </div>
+	    </form>
+	</div>
+	<div id="sysmenu_button">
+	    <a href="#" plain="true" class="easyui-linkbutton" iconCls="icon-ok" onclick="sysmenu_confirm()" style="width:90px">确定</a>
+	    <a href="#" plain="true" class="easyui-linkbutton" iconCls="icon-cancel" onclick="sysmenu_cancel()" style="width:90px">取消</a>
+	</div>
+</div>
+
+<script type="text/javascript">
+	var opt_name;
+	function sysmenu_add(){
+		$('#sysmenu_form').form('clear');
+		$('#sysmenu_add').dialog('open').dialog('center').dialog('setTitle','添加菜单');
+	}
+	function sysmenu_update(){
+		var row = $('#menu_grid').datagrid('getSelected');
+		if(row){
+			$('#sysmenu_add').dialog('open').dialog('center').dialog('setTitle','修改菜单');
+			$('#sysmenu_form').form('load',row);
+			$("#menu_index_key").val(row.id);
+		}else{
+			promptMsg();
+		}
+	}
+	function sysmenu_del(){
+		var row = $('#menu_grid').datagrid('getSelected');
+		if(row){
+			 $(function () {
+			 	$.messager.confirm("操作提示", "您确定要删除该菜单吗？", function (data) {
+		            if (data) {
+		            	$.ajax({
+		            		type: "POST",
+		                    url: "${base}/security/menu/delete",
+		                    dataType: "json",                    
+		                    async: false,
+		                    data:{id: row.id},
+		                    success: function(result){
+		                    	if(result.code=="12000"){
+		                    		sysmenu_refresh();
+		                    	} else {
+		        					promptMsgParam(result.msg);
+		        				}
+		                    },
+		                    error: function(obj, msg, e){
+		                    	promptMsgParam(msg);
+		                    }              
+		                });
+		            }
+		            else {
+		                return;
+		            }
+		        });
+		    });
+		}else{
+			promptMsg();
+		}
+	}
+	function sysmenu_confirm(){
+		$.ajax({
+			type:"post",
+			url:"${base}/security/menu/insert",
+			dataType:"json",
+			async:"false",
+			data:$("#sysmenu_form").serialize(),
+			success:function(result){
+				if(result.code==12000){
+					 $('#sysmenu_add').dialog('close');
+					 sysmenu_refresh();
+				}else{
+					alert("添加失败！");
+				}
+			},
+			error:function(obj, msg, e){
+				alert( "请求失败，请重试！");
+			}
+		})
+	}
+	function sysmenu_refresh(){
+		$('#menu_grid').datagrid('reload',{});
+	}
+	function sysmenu_cancel(){
+		  $('#sysmenu_form').form('clear');
+		  $('#sysmenu_add').dialog('close');
+	} 
+	$("#sysmenu_select").combobox({
+		onSelect:function(record){
+			var data = {"menuId":record.value};
+			$("#menu_grid").datagrid('load',data);
+			$('#dg').datagrid({    
+			    url:'datagrid_data.json',    
+			    columns:[[    
+			        {field:'code',title:'Code',width:100},    
+			        {field:'name',title:'Name',width:100},    
+			        {field:'price',title:'Price',width:100,align:'right'}    
+			    ]]    
+			});  
+		}
+	})
+</script>

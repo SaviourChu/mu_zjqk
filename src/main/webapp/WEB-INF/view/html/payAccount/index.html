@@ -1,0 +1,157 @@
+<div id="pa_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">账户名称:</label>
+	<input class="easyui-combobox" id="paName" data-options="url:'${base}/payAccount/listPayAccounts',valueField:'paName',textField:'paName'">&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="pa_search()" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="pa_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="pa_panel" class="easyui-panel" title="付款账户信息" style="width:100%;height:80%;">
+	<div id="pa_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="pa_add()">添加</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="pa_update()">修改</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="pa_deletes()">删除</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-download',plain:true" onclick="pa_import()">导入</a>
+	</div>
+	<table id="pa_datagrid" class="easyui-datagrid" style="width:100%;"
+		data-options="toolbar:'#pa_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/payAccount/list'" >
+		<thead>
+			<tr>
+				<th data-options="field:'ck',checkbox:true"></th>
+				<th data-options="field:'id',width:120,hidden:true">账户编号</th>
+				<th data-options="field:'name',width:'30%'">账户名称</th>
+				<th data-options="field:'account',width:'30%'">账号</th>
+				<th data-options="field:'bank',width:'30%'">开户行</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="pa_dlg" class="easyui-dialog" data-options="buttons:'#pa_buttons',closed:true">
+	<form id="pa_form" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div style="margin:20px 30px;text-align: center;">
+				<input type="hidden" id="aId" name="id"></input> 
+				<p><span class="lwpa">账户名称:</span><input class="easyui-textbox" type="text" name="name"/><br>
+				<p><span class="lwpa">账号:</span><input class="easyui-textbox" type="text" name="account"/><br>
+				<p><span class="lwpa">开户行:</span><input class="easyui-textbox" type="text" name="bank"/><br>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="pa_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="pa_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="pa_close()" style="width: 90px">取消</a>
+</div>
+
+<div id="pa_import_dlg" class="easyui-dialog" data-options="buttons:'#pa_import_buttons',closed:true">
+	<form id="pa_import_form" method="post" enctype="multipart/form-data">
+		<div>
+			<input type="file" name="execlFile" style="text-align:center;margin:0 auto;">
+		</div>
+	</form>
+</div>
+<div id="pa_import_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="import_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="import_close()" style="width: 90px">取消</a>
+</div>
+
+<style>
+	#pa_dlg{
+		width: 550px;
+		height: 190px;
+		padding: 20px 20px;
+	}
+	.lwpa{
+	    width: 60px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function pa_cleanSearch(){
+		$('#pa_datagrid').datagrid('load', {});
+		$('#pa_search').find('input').val('');
+	}
+	function pa_add() {
+		$('#pa_form').form('clear');
+		$('#pa_dlg').dialog('open').dialog('center').dialog('setTitle', '新增付款账户信息');
+	}
+	function pa_update() {
+		var row = $('#pa_datagrid').datagrid('getSelected');
+		if (row) {
+			$('#pa_dlg').dialog('open').dialog('center').dialog('setTitle', '修改付款账户信息');
+			$('#pa_form').form('load', row);
+			$("#aId").val(row.id);
+		} else {
+			promptMsg();
+		}
+	}
+	function pa_confirm() {
+		$.ajax({
+			type : "post",
+			url : "${base}/payAccount/saveOrUpdate",
+			dataType : "json",
+			async : "false",
+			data : $("#pa_form").serialize(),
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#pa_dlg').dialog('close');
+					pa_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		})
+	}
+	function pa_deletes() {
+		batchDelete("pa_datagrid", "${base}/payAccount/deletes", "pa_refresh();");
+	}
+	function pa_refresh() {
+		$('#pa_datagrid').datagrid('reload', {});
+	}
+	function pa_close() {
+		$('#pa_form').form('clear');
+		$('#pa_dlg').dialog('close');
+	}
+	function pa_search() {
+		var paName = $('#paName').combobox('getValue');
+		var data = {"paName" : paName};
+		$('#pa_datagrid').datagrid('load', data);
+	}
+	function pa_import() {
+		$('#pa_import_form').form('clear');
+		$('#pa_import_dlg').dialog('open').dialog('center').dialog('setTitle', '付款账号信息导入');
+	}
+	function import_close() {
+		$('#pa_import_form').form('clear');
+		$('#pa_import_dlg').dialog('close');
+	}
+	function import_confirm() {
+		var formData = new FormData($("#pa_import_form")[0]); 
+		$.ajax({ 
+			url: '${base}/payAccount/importPayAccounts', 
+			type: 'POST', 
+			data: formData,
+			async: false, 
+			cache: false, 
+			contentType: false, 
+			processData: false, 
+			success: function(data) {
+			if (data.code == 12000) {
+				$('#pa_import_dlg').dialog('close');
+				pa_refresh();
+			} else {
+				$.messager.alert('提示',data.msg,'info');
+				$('#pa_import_dlg').dialog('close');
+			}
+			}, 
+			error: function(data) {
+				promptMsgParam(msg);
+				$('#pa_import_dlg').dialog('close');
+			} 
+		}); 
+	}
+</script>

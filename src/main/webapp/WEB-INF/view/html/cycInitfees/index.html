@@ -1,0 +1,234 @@
+<div id="cif_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">费用项名称:</label> 
+	<select class="easyui-combobox" name="cifName" id="cifName" data-options="width:150">
+		<option value="" selected="selected"></option>
+		<#list ciItems as ci>
+			<option>${ci.ciName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;
+	<label class="label-top">店铺名称<span style="color:red">(初始化时必选)</span>:</label> 
+	<select class="easyui-combobox" name="cifsName" id="cifsName" data-options="width:150">
+		<option value="" selected="selected"></option>
+		<#list stores as s>
+			<option>${s.sName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="cif_search()" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="cif_addDIF()" data-options="iconCls:'icon-add'">按店铺初始化周期性费用</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="cif_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="cif_panel" class="easyui-panel" title="周期性费用初始化" style="width:100%;height:80%;padding:3px;">
+	<div id="cif_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="cif_add()">添加</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="cif_update()">修改</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="cif_deletes()">删除</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-download',plain:true" onclick="cif_import()">导入</a>
+	</div>
+	<table id="cif_datagrid" class="easyui-datagrid" style="width:100%;height:100%;padding: 3px;"
+		data-options="toolbar:'#cif_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/cycInitfees/list'" >
+		<thead>
+			<tr>
+				<th data-options="field:'ck',checkbox:true"></th>
+				<th data-options="field:'id',width:120,hidden:true">费用项编号</th>
+				<th data-options="field:'sName',width:'20%'">店铺名称</th>
+				<th data-options="field:'ciName',width:'20%'">周期性费用项名称</th>
+				<th data-options="field:'initFee',width:'20%'">初始费用</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="cif_dlg" class="easyui-dialog" data-options="buttons:'#cif_buttons',closed:true">
+	<form id="cif_form" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div>
+				<input type="hidden" id="ciIds" name="ciIds"></input> 
+				<#list ciItems as ci>
+					<span class="lwcif">${ci.ciName!}</span><input class="easyui-textbox" type="text" name="${ci.ciId!}"/>&nbsp;&nbsp;
+				</#list>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="cif_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="cif_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="cif_close()" style="width: 90px">取消</a>
+</div>
+
+<div id="cif_dlg2" class="easyui-dialog" data-options="buttons:'#cif_buttons2',closed:true">
+	<form id="cif_form2" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div style="margin:55px 30px;text-align:center;">
+				<input type="hidden" id="cifId" name="id"></input> 
+				<p><span class="lwcif2">费用项名称:</span><select class="easyui-combobox" name="ciName" data-options="width:164">
+					<option value="" selected="selected"></option>
+					<#list ciItems as ci>
+						<option>${ci.ciName!}</option>
+				    </#list>
+				</select>
+				<p><span class="lwcif2">店铺名称:</span><select class="easyui-combobox" name="sName" data-options="width:164">
+					<option value="" selected="selected"></option>
+					<#list stores as s>
+						<option>${s.sName!}</option>
+				    </#list>
+				</select>
+				<p><span class="lwcif2">初始费用:</span><input class="easyui-numberbox" data-options="precision:2,min:0" name="initFee"/>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="cif_buttons2">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="cif_confirm2()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="cif_close2()" style="width: 90px">取消</a>
+</div>
+
+<div id="cif_import_dlg" class="easyui-dialog" data-options="buttons:'#cif_import_buttons',closed:true">
+	<form id="cif_import_form" method="post" enctype="multipart/form-data">
+		<div>
+			<input type="file" name="execlFile" style="text-align:center;margin:0 auto;">
+		</div>
+	</form>
+</div>
+<div id="cif_import_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="import_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="import_close()" style="width: 90px">取消</a>
+</div>
+
+<style>
+	#cif_dlg,#cif_dlg2{
+		width: 600px;
+		height: 300px;
+		padding: 20px 20px;
+	}
+	.lwcif,.lwcif2{
+	    width: 73px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function cif_addDIF() {
+		var cifsName = $('#cifsName').combobox('getValue');
+		if(cifsName){
+			$('#cif_form').form('clear');
+			$('#cif_dlg').dialog('open').dialog('center').dialog('setTitle', '新增记录');
+		}
+	}
+	function cif_confirm() {
+		var cifsName = $('#cifsName').combobox('getValue');
+		var formData = $("#cif_form").serialize();
+		formData = "sName=" + cifsName + "&" + formData.replace(/&/g,'@');
+		$.ajax({
+			type : "post",
+			url : "${base}/cycInitfees/saveOrUpdateCIF",
+			dataType : "json",
+			async : "false",
+			data : formData,
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#cif_dlg').dialog('close');
+					cif_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		});
+	}
+	function cif_close() {
+		$('#cif_form').form('clear');
+		$('#cif_dlg').dialog('close');
+	}
+	
+	function cif_add() {
+		$('#cif_form2').form('clear');
+		$('#cif_dlg2').dialog('open').dialog('center').dialog('setTitle', '新增记录');
+	}
+	function cif_update() {
+		var row = $('#cif_datagrid').datagrid('getSelected');
+		if (row) {
+			$('#cif_dlg2').dialog('open').dialog('center').dialog('setTitle', '修改记录');
+			$('#cif_form2').form('load', row);
+			$("#cifId").val(row.id);
+		} else {
+			promptMsg();
+		}
+	}
+	function cif_confirm2() {
+		var formData = $("#cif_form2").serialize();
+		$.ajax({
+			type : "post",
+			url : "${base}/cycInitfees/saveOrUpdate",
+			dataType : "json",
+			async : "false",
+			data : formData,
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#cif_dlg2').dialog('close');
+					cif_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		});
+	}
+	function cif_deletes() {
+		batchDelete("cif_datagrid", "${base}/cycInitfees/deletes", "cif_refresh();");
+	}
+	function cif_refresh() {
+		$('#cif_datagrid').datagrid('reload', {});
+	}
+	function cif_close2() {
+		$('#cif_form2').form('clear');
+		$('#cif_dlg2').dialog('close');
+	}
+	function cif_search() {
+		var cifName = $('#cifName').combobox('getValue');
+		var cifsName = $('#cifsName').combobox('getValue');
+		var data = {"ciName":cifName,"sName":cifsName};
+		$('#cif_datagrid').datagrid('load', data);
+	}
+	function cif_cleanSearch(){
+		$('#cif_datagrid').datagrid('load', {});
+		$('#cif_search').find('input').val('');
+	}
+	function cif_import() {
+		$('#cif_import_form').form('clear');
+		$('#cif_import_dlg').dialog('open').dialog('center').dialog('setTitle', '周期性初始化费用导入');
+	}
+	function import_close() {
+		$('#cif_import_form').form('clear');
+		$('#cif_import_dlg').dialog('close');
+	}
+	function import_confirm() {
+		var formData = new FormData($("#cif_import_form")[0]); 
+		$.ajax({ 
+			url: '${base}/cycInitfees/importCycInitfees', 
+			type: 'POST', 
+			data: formData,
+			async: false, 
+			cache: false, 
+			contentType: false, 
+			processData: false, 
+			success: function(data) {
+			if (data.code == 12000) {
+				$('#cif_import_dlg').dialog('close');
+				cif_refresh();
+			} else {
+				$.messager.alert('提示',data.msg,'info');
+				$('#cif_import_dlg').dialog('close');
+			}
+			}, 
+			error: function(data) {
+				promptMsgParam(msg);
+				$('#cif_import_dlg').dialog('close');
+			} 
+		}); 
+	}
+</script>

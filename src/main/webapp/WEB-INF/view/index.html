@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta http-equiv="pragma" content="no-cache">
+		<meta http-equiv="cache-control" content="no-cache">
+		<meta http-equiv="expires" content="0">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<title>租金请款系统</title>
+		<link rel="stylesheet" type="text/css" href="${base}/kindeditor/themes/default/default.css">
+		<link rel="stylesheet" type="text/css" href="${base}/jquery-easyui-1.4.4/themes/bootstrap/easyui.css">
+		<link rel="stylesheet" type="text/css" href="${base}/jquery-easyui-1.4.4/themes/icon.css"/>
+		<link rel="stylesheet" type="text/css" href="${base}/jquery-easyui-1.4.4/themes/color.css"/>
+		<link rel="stylesheet" type="text/css" href="${base}/css/kube.css"/>
+		<link rel="stylesheet" type="text/css" href="${base}/css/main.css">
+		<link rel="stylesheet" type="text/css" href="${base}/css/index.css">
+		<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+		<link rel="stylesheet" type="text/css" href="${base}/ztree/css/zTreeStyle/zTreeStyle.css">
+		
+		<!-- jQueryUI和easyUI同时使用时，要将jQueryUI放在前面，否则会导致easyUI部分功能不能使用 -->
+		<script type="text/javascript" src="${base}/js/jquery.min.js"></script>
+		<script type="text/javascript" src="${base}/js/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="${base}/js/echarts.js"></script>
+		<script type="text/javascript" src="${base}/kindeditor/kindeditor.js"></script>
+		<script type="text/javascript" src="${base}/kindeditor/lang/zh-CN.js"></script>
+		<script type="text/javascript" src="${base}/js/template.js"></script>
+		<script type="text/javascript" src="${base}/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
+		<script type="text/javascript" src="${base}/jquery-easyui-1.4.4/locale/easyui-lang-zh_CN.js"></script>
+		<script type="text/javascript" src="${base}/js/zjqk.js"></script>
+		<script type="text/javascript" src="${base}/ztree/js/jquery.ztree.core.min.js"></script>
+		<script type="text/javascript" src="${base}/ztree/js/jquery.ztree.excheck.min.js"></script>
+		<script type="text/javascript" src="${base}/js/jquery.edatagrid.js"></script>
+		
+		<!-- <link rel="stylesheet" type="text/css" href="http://www.jeasyui.com/easyui/themes/default/easyui.css">
+		<link rel="stylesheet" type="text/css" href="http://www.jeasyui.com/easyui/themes/icon.css">
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
+		<script type="text/javascript" src="http://www.jeasyui.com/easyui/jquery.easyui.min.js"></script> -->
+	</head>
+	
+	<body class="easyui-layout" style="text-align: left">
+		<div data-options="region:'north',border:false" class="group wrap header" style="height: 40px; font-size: 100%">
+			<div id="elogo" class="navbar navbar-left" style="padding-left: 2%; ">
+				<ul>
+					<li><a href="javascript:void(0)"><img src="${base}/images/logo.png" alt="租金请款系统" style="height:40px;" /></a></li>
+				</ul>
+			</div>
+			<div id="navbar-1" class="navbar navbar-right" style="padding-right: 3%; margin-top: -5px;">
+				<span>欢迎<em>${user.fullname}</em>登录<em>${user.classify}</em>租金管理系统</span>
+				<a href="${base}/security/user/dologout">退出</a>
+				<!-- <a href="">修改密码</a> -->
+			</div>
+		</div>
+		<div data-options="region:'west',split:'true'" title="菜单" style="width: 14%; min-width: 200px; padding: 5px;">
+			<ul class="easyui-tree">
+				<#list menus as menu>
+					<li ><span>${menu.name!}</span>
+						<ul>
+							<#list menu.subMenus as submenu>
+								<li ><a href="#" onclick="open1('${base}${submenu.url!}','${submenu.name!}')">${submenu.name!}</a></li>
+							</#list>
+						</ul>
+					</li>
+				</#list>
+			</ul>
+		</div>
+		<div data-options="region:'center'">
+			<div id="tt" class="easyui-tabs" data-options="fit:true,border:false,plain:true" >
+			</div>
+		</div>
+	</body>
+	
+	<!-- <div id="sysInfo_dlg" class="easyui-dialog" title="修改密码" data-options="closed:true,width:550,height:280,buttons:'#sysInfo_buttons'">
+	    <form id="sysInfo_fm" style="margin-top: 40px;" method="post" enctype="multipart/form-data">
+	        <div class="sysInfo">
+	            <p><span class="lw">原密码:</span><input class="easyui-textbox" type="text" name="oldPwd" /><br>
+	            <p><span class="lw">新密码:</span><input class="easyui-textbox" type="text" name="newPwd" /><br>
+	            <p><span class="lw">确认密码:</span><input class="easyui-textbox" type="text" name="affirmPwd" /><br>
+	        </div>
+	    </form>
+	</div>
+	<div id="sysInfo_buttons">
+	    <a href="javascript:void(0)" data-options="plain:true,iconCls:'icon-ok'" class="easyui-linkbutton" onclick="sysInfo_confirm()" style="width:90px">确定</a>
+	    <a href="javascript:void(0)" data-options="plain:true,iconCls:'icon-cancel'" class="easyui-linkbutton" onclick="sysInfo_close()" style="width:90px">取消</a>
+	</div> -->
+	
+	<div id="em" class="easyui-menu" style="width:88px;">
+         <div id="em_closeAll">关闭全部</div>
+         <div id="em_closeOthers">关闭其他</div>
+	 </div>
+	
+	<script type="text/javascript">
+	
+		/* $(".easyui-tabs").bind('contextmenu',function(e, tabs){           
+		    e.preventDefault();    
+		    $('#em').menu('show', { left: e.pageX, top: e.pageY });    
+	   	}); */
+		
+		$('#tt').tabs({
+			fit : true,
+			border : false,
+			onContextMenu : function(e, title) {
+				e.preventDefault();
+				$('#em').menu('show', { left: e.pageX, top: e.pageY });   
+			}
+		});
+		
+		$('#em_closeAll').click(function(){
+		    $('.tabs-inner span').each(function(i,n){
+		        $('#tt').tabs('close', $(n).text());
+		    });    
+		});
+		$('#em_closeOthers').click(function(){
+			var selectTab = $('.tabs-selected span').eq(0).text();
+		    $('.tabs-inner span').each(function(i,n){
+		        var t = $(n).text();
+		        if(t != selectTab){ $('#tt').tabs('close', t); }
+		    });    
+		});
+	
+		$(function() {
+			var sw = $(window).width();
+			if (sw < 767) {
+				$('body').layout('collapse', 'west');
+			}
+			$('.navigation-toggle span').bind('click', function() {
+				$('#head-menu').toggle();
+			});
+		});
+		function open1(href,title) {
+			if ($('#tt').tabs('exists', title)) {
+				$('#tt').tabs('select', title);
+			} else {
+				$('#tt').tabs('add', {
+					title : title,
+					href : href,
+					closable : true,
+					bodyCls : 'content-doc',
+					extractor : function(data) {
+						data = $.fn.panel.defaults.extractor(data);
+						return data;
+					}
+				});
+			}
+		}
+		function setNav() {
+			var demosubmenu = $('#demo-submenu');
+			if (demosubmenu.length) {
+				if ($(window).width() < 450) {
+					demosubmenu.find('a:last').hide();
+				} else {
+					demosubmenu.find('a:last').show();
+				}
+			}
+			if ($(window).width() < 767) {
+				$('.navigation-toggle').each(function() {
+					$(this).show();
+					var target = $(this).attr('data-target');
+					$(target).hide();
+					setDemoNav();
+				});
+			} else {
+				$('.navigation-toggle').each(function() {
+					$(this).hide();
+					var target = $(this).attr('data-target');
+					$(target).show();
+				});
+			}
+		}
+		function setDemoNav() {
+			$('.navigation-toggle').each(function() {
+				var target = $(this).attr('data-target');
+				if (target == '#navbar-demo') {
+					if ($(target).is(':visible')) {
+						$(this).css('margin-bottom', 0);
+					} else {
+						$(this).css('margin-bottom', '2.3em');
+					}
+				}
+			});
+		}
+		$(function() {
+			setNav();
+			$(window).bind('resize', function() {
+				setNav();
+			});
+			$('.navigation-toggle').bind('click', function() {
+				var target = $(this).attr('data-target');
+				$(target).toggle();
+				setDemoNav();
+			});
+		})
+		
+		$(function(){
+			$(document).on( "click",".tabs>li", function(){
+				alert("The paragraph was clicked.");
+			});
+		})
+		
+		var createGridHeaderContextMenu = function(e, field) {  
+		    e.preventDefault();  
+		    var grid = $(this);/* grid本身 */  
+		    var headerContextMenu = this.headerContextMenu;/* grid上的列头菜单对象 */  
+		    var okCls = 'tree-checkbox1';// 选中  
+		    var emptyCls = 'tree-checkbox0';// 取消  
+		    if (!headerContextMenu) {  
+		        var tmenu = $('<div style="width:100px;"></div>').appendTo('body');  
+		        var fields = grid.datagrid('getColumnFields');  
+		        for (var i = 0; i < fields.length; i++) {  
+		            var fildOption = grid.datagrid('getColumnOption', fields[i]);
+		            var flagCls = (!fildOption.hidden) ? okCls : emptyCls;
+		            $('<div iconCls="' + flagCls + '" field="' + fields[i] + '"/>').html(fildOption.title).appendTo(tmenu);  
+		        }  
+		        headerContextMenu = this.headerContextMenu = tmenu.menu({  
+		            onClick : function(item) {
+		            	var showOrHideStr = (item.iconCls == okCls) ? 'hideColumn' : 'showColumn';
+		            	var iconClsFlag = (item.iconCls == okCls) ? emptyCls : okCls;
+		                grid.datagrid(showOrHideStr, $(item.target).attr('field'));  
+		                $(this).menu('setIcon', {  
+		                    target : item.target,  
+		                    iconCls : iconClsFlag
+		                });  
+		            }  
+		        });  
+		    }  
+		    headerContextMenu.menu('show', {  
+		        left : e.pageX,  
+		        top : e.pageY  
+		    });  
+		};  
+		$.fn.datagrid.defaults.onHeaderContextMenu = createGridHeaderContextMenu;  
+		$.fn.treegrid.defaults.onHeaderContextMenu = createGridHeaderContextMenu;  
+		
+	</script>
+	
+	<style type="text/css">
+		.tree-title {
+			font-size: 14px;
+		}
+		.tree-title a {
+			text-decoration: none;
+		}
+		#head-menu {
+			position: absolute;
+			z-index: 8;
+			display: none;
+			background: #2d3e50;
+			color: #fff;
+			left: 0;
+			padding: 0 4.5%;
+			top: 66px;
+		}
+		#head-menu .navbar {
+			margin: 0 40px 20px 40px;
+		}
+		#head-menu a {
+			color: #fff;
+		}
+	</style>
+</html>
+
+

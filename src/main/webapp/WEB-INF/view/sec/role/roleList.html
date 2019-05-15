@@ -1,0 +1,144 @@
+<style type="text/css">
+	.sysrole_fitem span {
+		display:-moz-inline-box;
+		display:inline-block;
+		text-align:left;
+		width:100px; 
+	}
+</style>
+
+<div class="easyui-panel" title="角色列表" style="width:100%;height:100%;padding:3px;">
+	<div style="padding:2px 2px;">
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-reload" onclick="sysrole_refresh()" plain="true" >刷新</a>
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-add" onclick="sysrole_add()" plain="true" >添加角色</a>
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-edit" onclick="sysrole_update()" plain="true" >修改角色</a>
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-remove" onclick="sysrole_delete()" plain="true">删除角色</a>
+   </div>
+	<table id="role_grid" url="${base}/security/role/roleList" class="easyui-datagrid" style="width:100%;height:90%"
+		data-options="pageSize:30,fitColumns:true,pagination:true,singleSelect:true,rownumbers:true">
+	    <thead>
+	        <tr>
+	            <th data-options="field:'id',width:'5%',hidden:'true'">序号</th>
+	            <th field="name" width="100" >角色名称</th>
+	            <th field="description" width="100">角色描述</th>
+	        </tr>
+	    </thead>
+	</table>
+	<div id="sysrole_add" class="easyui-dialog" title="添加角色" closed="true" buttons="#sysrole_button" style="width:500px;height:400px;padding:10px 50px">
+	    <form id="sysrole_form" style="margin-top: 40px;" method="post" enctype="multipart/form-data">
+	        <div class="sysrole_fitem">
+	            <span>角色名称:</span> 
+	            <input class="easyui-textbox" type="text" name="name" style="width: 200px;"/><br>
+	            <span>角色描述:</span>
+	            <input class="easyui-textbox" type="text" name="description" style="width: 200px;" data-options="height:60,multiline:true"/><br>
+	            <input type="hidden" id="hidden_key" name="id" ></input>
+	            <span>权限菜单:</span>
+	            <div style="max-height: 250px">
+                    <ul id="menuTree" class="ztree"></ul>
+                </div>
+	        </div>
+	    </form>
+	</div>
+	<div id="sysrole_button">
+	    <a href="javascript:void(0)" plain="true" class="easyui-linkbutton" iconCls="icon-ok" onclick="sysrole_confirm()" style="width:90px">确定</a>
+	    <a href="javascript:void(0)" plain="true" class="easyui-linkbutton" iconCls="icon-cancel" onclick="sysrole_cancel()" style="width:90px">取消</a>
+	</div>
+</div>
+
+<script type="text/javascript">
+	function sysrole_add(){
+		$('#sysrole_form').form('clear');
+		$('#sysrole_add').dialog('open').dialog('center').dialog('setTitle','添加角色');
+		getMenuTree('parent_menu');
+	}
+	function getMenuTree(t) {
+		var menuSetting = {
+		    data: {
+		        simpleData: {
+		            enable: true,
+		            idKey: "id",
+		            pIdKey: t,
+		            rootPId: 0
+		        },
+		        key: { url: "nourl" }
+		    },
+		    check: {
+		        enable: true,
+		        nocheckInherit: true
+		    }
+		};
+		var roleId = $("#hidden_key").val();
+		$.getJSON("${base}/security/role/loadMenus?roleId=" + roleId, function (r) {
+            var menu_ztree = $.fn.zTree.init($("#menuTree"), menuSetting, r);
+            menu_ztree.expandAll(true);
+        });
+    }
+	function sysrole_update(){
+		var row = $('#role_grid').datagrid('getSelected');
+		if(row){
+			$('#sysrole_add').dialog('open').dialog('center').dialog('setTitle','修改角色');
+			$('#sysrole_form').form('load',row);
+			$("#hidden_key").val(row.id);
+		 	getMenuTree('parentMenu');
+		}else{
+			promptMsg();
+		}
+	}
+	function sysrole_confirm(){
+		var zTree = $.fn.zTree.getZTreeObj("menuTree");
+		var changedNodes = zTree.getChangeCheckedNodes();
+		var rolesData = "";
+		for (var i=0 ; i < changedNodes.length ; i++){
+			var treeNode = changedNodes[i];
+			var nid = treeNode.id;
+			var checked = eval(treeNode.checked) ? 1 : 2;
+			rolesData += nid + '-' + checked + ',';
+		}
+		var formData = $("#sysrole_form").serializeArray();
+		formData.push({"name":"roles","value":rolesData});
+		$.ajax({
+			type:"post",
+			url:"${base}/security/role/saveOrUpdate",
+			dataType:"json",
+			async:"false",
+			data:formData,
+			success:function(result){
+				if(result.code==12000){
+					 $('#sysrole_add').dialog('close');
+					 sysrole_refresh();
+				}else{
+					alert("操作失败！");
+				}
+			},
+			error:function(obj, msg, e){
+				alert( "请求失败，请重试！");
+			}
+		})
+	}
+	function sysrole_refresh(){
+		$('#role_grid').datagrid('reload',{});
+	}
+	function sysrole_cancel(){
+		$('#sysrole_form').form('clear');
+		  $('#sysrole_add').dialog('close');
+	} 
+	function sysrole_delete() {
+		var row = $('#role_grid').datagrid('getSelected');
+		if(row){
+			$(function () {
+		        $.messager.confirm("操作提示", "您确定要删除该角色吗？", function (data) {
+		            if (data) {
+		            	$.post("${base}/security/role/delete", {"id" : row.id}, function() {
+		    				sysrole_refresh();
+		    			}, "json");
+		            }
+		            else {
+		                return;
+		            }
+		        });
+		    });
+		}else{
+			promptMsg();
+		}
+	}
+</script>

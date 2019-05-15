@@ -1,0 +1,131 @@
+<div id="dbm_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">店铺名称:</label>
+	<input class="easyui-combobox" id="dbmsName" data-options="url:'${base}/store/listStores',valueField:'sName',textField:'sName'">&nbsp;&nbsp;
+	<label class="label-top">收款账户:</label>
+	<input class="easyui-combobox" id="dbmaName" data-options="url:'${base}/account/listAccounts',valueField:'aName',textField:'aName'">&nbsp;&nbsp;
+	<label class="label-top">单号:</label>
+	<input class="easyui-textbox"type="text" id="dbmBillNo" name="dbmBillNo" data-options="width:150"/>
+	<br>
+	<label class="label-top">制单日期:</label>
+	<input class="easyui-datebox" id="dbmsTime" name="dbmsTime" data-options="width:100,editable:false"/>&nbsp;&nbsp;~&nbsp;
+	<input class="easyui-datebox" id="dbmeTime" name="dbmeTime" data-options="width:100,editable:false"/>&nbsp;&nbsp;
+	<label class="label-top">状态:</label> 
+	<select class="easyui-combobox" name="dbmStatus" id="dbmStatus" data-options="width:120,panelHeight:'auto'">
+		<option value="" selected="selected"></option>
+		<option value="2">待审批</option>
+		<option value="3">待支付</option>
+		<option value="5">审批退回</option>
+	</select>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="dbm_search()" data-options="iconCls:'icon-search'">查询</a>
+	<a href="#" class="easyui-linkbutton" onclick="dbm_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="dbm_panel" class="easyui-panel" title="请款记录" style="width:100%;height:80%;padding:3px;">
+	<div id="dbm_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="dbm_passs()">审批</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-no',plain:true" onclick="dbm_backs()">退回</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="dbm_cancels()">取消审批通过</a>
+	</div>
+	<table id="dbm_datagrid" class="easyui-datagrid" style="width:100%;" 
+		data-options="toolbar:'#dbm_toolbar',pagination:true,rownumbers:true,fit:true,fitColumns:true,url:'${base}/dispBills/listManager'" >
+		<thead>
+			<tr>
+				<th data-options="field:'ck',checkbox:true"></th>
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'createTime',width:'7%'">制单日期</th>
+				<th data-options="field:'billNo',width:'9%'">单号</th>
+				<th data-options="field:'brand',width:'6%'">品牌</th>
+				<th data-options="field:'sName',width:'10%'">店铺名称</th>
+				<th data-options="field:'contractSubject',width:'10%'">合同抬头</th>
+				<th data-options="field:'berthNo',width:'8%'">铺位号</th>
+				<th data-options="field:'aName',width:'6%'">收款账户</th>
+				<th data-options="field:'account',width:'12%'">收款账号</th>
+				<th data-options="field:'bank',width:'6%'">开户行</th>
+				<th data-options="field:'payDate',width:'8%'">申请支付日期</th>
+				<th data-options="field:'totalMoney',width:'6%',formatter:gshje">合计金额</th>
+				<th data-options="field:'status',width:'6%',formatter:dbmFlag">状态</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="dbdm_win" class="easyui-window" title="<span id='dbdm_billno' style='color:red;'></span>" 
+	data-options="modal:true,closed:true,minimizable:false" style="width:900px;top:60px;height:500px;">
+	<div id="dbdm_search" class="easyui-panel" title="请款单信息" style="padding:5px;">
+		<div>
+			<label class="label-top">店铺名称:</label>
+			<input class="easyui-textbox" type="text" id="dbdmsName" name="dbdmsName" data-options="editable:false">&nbsp;&nbsp;
+			<label class="label-top">收款账户:</label> 
+			<input class="easyui-textbox" type="text" id="dbdmaName" name="dbdmaName" data-options="editable:false">&nbsp;&nbsp;
+			<label class="label-top">申请支付日期:</label>
+			<input class="easyui-datebox" id="dbdmPayDate" name="dbdmPayDate" data-options="editable:false"/>
+		</div>
+	</div>
+	<div id="dbdm_panel" class="easyui-panel" title="一次性请款明细">
+		<table id="dbdm_datagrid" class="easyui-datagrid" data-options="pagination:true,rownumbers:true,fitColumns:true" >
+			<thead>
+				<tr>
+					<th data-options="field:'id',width:120,hidden:true">编号</th>
+					<th data-options="field:'diName',width:'20%'">付款项目</th>
+					<th data-options="field:'initFee',width:'10%'">初始金额</th>
+					<th data-options="field:'money',width:'10%'">请款金额</th>
+					<th data-options="field:'remarks',width:'20%'">备注</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+	function dbmFlag(val){
+		return "<span style='color:red'>"+val+"</span>";
+	}
+	function dbm_refresh() {
+		$('#dbm_datagrid').datagrid('reload', {});
+	}
+	function dbm_search() {
+		var sName = $('#dbmsName').combobox('getValue');
+		var aName = $('#dbmaName').combobox('getValue');
+		var status = $('#dbmStatus').combobox('getValue');
+		var sTime = $('#dbmsTime').datebox('getValue');
+		var eTime = $('#dbmeTime').datebox('getValue');
+		var billNo = $('#dbmBillNo').textbox('getValue');
+		var data = {"sName":sName,"aName":aName,"status":status,"sTime":sTime,"eTime":eTime,"billNo":billNo};
+		$('#dbm_datagrid').datagrid('load', data);
+	}
+	function dbm_cleanSearch(){
+		$('#dbm_datagrid').datagrid('load', {});
+		$('#dbm_search').find('input').val('');
+	}
+	function dbm_passs() {
+		var s = '待审批';
+		var info1 = "您确定将已选择的记录审批通过吗？<br><span style='color:red;'>(只会处理"+renderColor('blue', s)+"的记录！)</span>";
+		var info2 = "请您选择"+renderColor('blue', s)+"的记录进行操作！";
+		batchOperator('dbm_datagrid', s, info1, info2, "${base}/dispBills/passs", "dbm_refresh();");
+	}
+	function dbm_backs() {
+		var s = '待审批';
+		var info1 = "您确定将已选择的记录驳回吗？<br><span style='color:red;'>(只会处理"+renderColor('blue', s)+"的记录！)</span>";
+		var info2 = "请您选择"+renderColor('blue', s)+"的记录进行操作！";
+		batchOperator('dbm_datagrid', s, info1, info2, "${base}/dispBills/backs", "dbm_refresh();");
+	}
+	function dbm_cancels() {
+		var s = '待支付';
+		var info1 = "您确定将已选择的记录取消审批通过吗？<br><span style='color:red;'>(只会处理"+renderColor('blue', s)+"的记录！)</span>";
+		var info2 = "请您选择"+renderColor('blue', s)+"的记录进行操作！";
+		batchOperator('dbm_datagrid', s, info1, info2, "${base}/dispBills/cancels", "dbm_refresh();");
+	}
+	$('#dbm_datagrid').datagrid({
+		onDblClickRow: function(rowIndex, rowData){
+			var billNo = rowData['billNo'];
+			$('#dbdm_billno').html("请款单号："+billNo);
+			$('#dbdmsName').textbox('setValue',rowData['sName']);
+			$('#dbdmaName').textbox('setValue',rowData['aName']);
+			$('#dbdmPayDate').datebox('setValue',rowData['payDate']);
+			$('#dbdm_win').window('open');
+			$('#dbdm_datagrid').datagrid({
+			    url:'${base}/dispDetails/list?billNo='+billNo+'&s='+new Date().getTime()
+			});
+		}
+	});
+</script>

@@ -1,0 +1,91 @@
+<script type="text/javascript" src="${base}/js/dateui.js"></script>
+<link rel="stylesheet" type="text/css" href="${base}/css/ym_table.css">
+
+<div id="rc_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">所属年月:</label>
+	<input class="easyui-textbox" type="text" id="rcymDate" name="rcymDate" data-options="width:120"/>&nbsp;&nbsp;
+	<label class="label-top">店铺名称:</label>
+	<input class="easyui-combobox" id="rcsName" data-options="url:'${base}/store/listStores',valueField:'sName',textField:'sName'">&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="rc_search();" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="rc_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="rc_panel" class="easyui-panel" title="提成租金计算表" style="width:100%;height:80%;">
+	<div id="rc_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-upload',plain:true" onclick="rc_export()">导出</a>
+	</div>
+	<table id="rc_datagrid" class="easyui-datagrid" style="width:100%;"
+		data-options="toolbar:'#rc_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/store/rentStatistics',singleSelect:true" >
+		<thead>
+			<tr>
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'ymDate',width:'6%'">所属年月</th>
+				<th data-options="field:'sName',width:'15%'">店铺名称</th>
+				<th data-options="field:'openingDate',width:'7%'">开业日期</th>
+				<th data-options="field:'closeDate',width:'7%'">撤铺日期</th>
+				<th data-options="field:'bdzj',width:'6%',formatter:gshje">保底租金</th>
+				<th data-options="field:'tcbl',width:'8%'">提成租金比例</th>
+				<th data-options="field:'actualIncome',width:'8%',formatter:gshje">实际收入</th>
+				<th data-options="field:'shopIncome',width:'10%',formatter:gshje">上报商场收入</th>
+				<th data-options="field:'payableFee',width:'10%',formatter:gshje">计算应补金额</th>
+				<th data-options="field:'actualPayment',width:'10%',formatter:gshje">实际支付金额</th>
+				<th data-options="field:'differenceFee',width:'10%',formatter:gshje">差额</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+<div id="tczjmx_win" class="easyui-window"  title="提成租金明细" data-options="modal:true,closed:true,minimizable:false" style="width:600px;top:120px;height:350px;">
+	<table id="tczjmx_datagrid" class="easyui-datagrid" data-options="pagination:true,rownumbers:true,fitColumns:true" >
+		<thead>
+			<tr>
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'billNo',width:'18%'">单号</th>
+				<th data-options="field:'startTime',width:'12%'">开始时间</th>
+				<th data-options="field:'endTime',width:'12%'">结束时间</th>
+				<th data-options="field:'ciName',width:'12%'">付款项目</th>
+				<th data-options="field:'money',width:'12%'">请款金额</th>
+				<th data-options="field:'remarks',width:'20%'">备注</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<script type="text/javascript">
+	$(function(){
+		$('#rcymDate').combobox('yearandmonth');
+	});
+	function rc_refresh() {
+		$('#rc_datagrid').datagrid('reload', {});
+	}
+	function rc_search() {
+		var rcsName = $('#rcsName').combobox('getValue');
+		var rcymDate = $('#rcymDate').textbox('getValue');
+		var data = {"sName" : rcsName,"ymDate" : rcymDate};
+		$('#rc_datagrid').datagrid('load', data);
+	}
+	function rc_export(){
+		$.messager.confirm("操作提示", "您确定要执行导出操作吗？", function(data){
+			if(data){
+				var sName = $('#rcsName').combobox('getValue');
+				var ymDate = $('#rcymDate').textbox('getValue');
+				var str = "sName="+sName+"&ymDate="+ymDate;
+				location.href = "${base}/store/exRentCount?"+str;
+			}
+		});
+	}
+	function rc_cleanSearch(){
+		$('#rc_datagrid').datagrid('load', {});
+		$('#rc_search').find('input').val('');
+	}
+	$('#rc_datagrid').datagrid({
+		onDblClickRow: function(rowIndex, rowData){
+			var sName = rowData['sName'];
+			if(sName){
+				$('#tczjmx_win').window('open');
+				$('#tczjmx_datagrid').datagrid({
+				    url:'${base}/cycDetails/tczjmx?sName='+sName
+				});
+			}
+		}
+	});
+</script>

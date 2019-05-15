@@ -1,0 +1,188 @@
+<div id="dbf_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">店铺名称:</label>
+	<input class="easyui-combobox" id="dbfsName" data-options="url:'${base}/store/listStores',valueField:'sName',textField:'sName'">&nbsp;&nbsp;
+	<label class="label-top">收款账户:</label>
+	<input class="easyui-combobox" id="dbfaName" data-options="url:'${base}/account/listAccounts',valueField:'aName',textField:'aName'">&nbsp;&nbsp;
+	<label class="label-top">付款账户:</label>
+	<input class="easyui-combobox" id="dbfpName" data-options="url:'${base}/payAccount/listPayAccounts',valueField:'paName',textField:'paName'">&nbsp;&nbsp;
+	<label class="label-top">单号:</label>
+	<input class="easyui-textbox"type="text" id="dbfBillNo" name="dbfBillNo" data-options="width:150"/>
+	<br>
+	<label class="label-top">制单日期:</label>
+	<input class="easyui-datebox" id="dbfsTime" name="dbfsTime" data-options="width:100,editable:false"/>&nbsp;&nbsp;~&nbsp;
+	<input class="easyui-datebox" id="dbfeTime" name="dbfeTime" data-options="width:100,editable:false"/>&nbsp;&nbsp;
+	<label class="label-top">状态:</label> 
+	<select class="easyui-combobox" id="dbfStatus" name="dbfStatus" data-options="width:120,panelHeight:'auto'">
+		<option value="" selected="selected"></option>
+		<option value="3">待支付</option>
+		<option value="4">已支付未开票</option>
+		<option value="6">部分发票</option>
+		<option value="7">发票已全</option>
+	</select>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="dbf_search()" data-options="iconCls:'icon-search'">查询</a>
+	<a href="#" class="easyui-linkbutton" onclick="dbf_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="dbf_panel" class="easyui-panel" title="一次性请款记录" style="width:100%;height:80%;">
+	<div id="dbf_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-reload',plain:true" onclick="dbf_refresh()">刷新</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="dbf_pay()">确认支付</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="dbf_update()">修改支付信息</a>
+	</div>
+	<table id="dbf_datagrid" class="easyui-datagrid" style="width:100%;" 
+		data-options="toolbar:'#dbf_toolbar',pagination:true,rownumbers:true,fit:true,fitColumns:true,url:'${base}/dispBills/listFinancial',singleSelect:true" >
+		<thead>
+			<tr>
+				<th data-options="field:'ck',checkbox:true"></th>
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'createTime',width:'7%'">制单日期</th>
+				<th data-options="field:'billNo',width:'9%'">单号</th>
+				<th data-options="field:'brand',width:'6%'">品牌</th>
+				<th data-options="field:'sName',width:'10%'">店铺名称</th>
+				<th data-options="field:'contractSubject',width:'10%'">合同抬头</th>
+				<th data-options="field:'berthNo',width:'8%'">铺位号</th>
+				<th data-options="field:'aName',width:'6%'">收款账户</th>
+				<th data-options="field:'account',width:'10%'">收款账号</th>
+				<th data-options="field:'bank',width:'6%'">开户行</th>
+				<th data-options="field:'payDate',width:'8%'">申请支付日期</th>
+				<th data-options="field:'totalMoney',width:'6%',formatter:gshje">合计金额</th>
+				<th data-options="field:'status',width:'6%',formatter:dbfFlag">状态</th>
+				<th data-options="field:'paName',width:'8%'">付款账户</th>
+				<th data-options="field:'actualDate',width:'8%'">实付日期</th>
+				<th data-options="field:'actualMoney',width:'6%',formatter:gshje">实付金额</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="dbf_dlg" class="easyui-dialog" data-options="buttons:'#dbf_buttons',closed:true" style="width: 550px;height:300px;">
+	<form id="dbf_form" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div style="margin: 60px 30px;text-align:center;">
+				<input type="hidden" id="dbfId" name="id"></input>
+				<p><span class="lwdbf">付款账户:</span><input class="easyui-combobox" name="paName"  data-options="url:'${base}/payAccount/listPayAccounts',valueField:'paName',textField:'paName'">&nbsp;&nbsp;
+				<p><span class="lwdbf">实付日期:</span><input class="easyui-datebox" name="actualDate"/><br>
+				<p><span class="lwdbf">实付金额:</span><input class="easyui-textbox" type="text" name="actualMoney"/><br>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="dbf_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="dbf_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="dbf_close()" style="width: 90px">取消</a>
+</div>
+
+<div id="dbdf_win" class="easyui-window" title="<span id='dbdf_billno' style='color:red;'></span>" 
+	data-options="modal:true,closed:true,minimizable:false" style="width:900px;top:60px;height:500px;">
+	<div id="dbdf_search" class="easyui-panel" title="请款单信息" style="padding:5px;">
+		<div>
+			<label class="label-top">店铺名称:</label>
+			<input class="easyui-textbox" type="text" id="dbdfsName" name="dbdfsName" data-options="editable:false">&nbsp;&nbsp;
+			<label class="label-top">收款账户:</label> 
+			<input class="easyui-textbox" type="text" id="dbdfaName" name="dbdfaName" data-options="editable:false">&nbsp;&nbsp;
+			<label class="label-top">申请支付日期:</label>
+			<input class="easyui-datebox" id="dbdfPayDate" name="dbdfPayDate" data-options="editable:false"/>
+		</div>
+	</div>
+	<div id="dbdf_panel" class="easyui-panel" title="一次性请款明细">
+		<table id="dbdf_datagrid" class="easyui-datagrid" data-options="pagination:true,rownumbers:true,fitColumns:true" >
+			<thead>
+				<tr>
+					<th data-options="field:'id',width:120,hidden:true">编号</th>
+					<th data-options="field:'diName',width:'20%'">付款项目</th>
+					<th data-options="field:'initFee',width:'10%'">初始金额</th>
+					<th data-options="field:'money',width:'10%'">请款金额</th>
+					<th data-options="field:'remarks',width:'20%'">备注</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<style>
+	.lwdbf {
+	    width: 80px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function dbfFlag(val){
+		return "<span style='color:red'>"+val+"</span>";
+	}
+	function dbf_refresh() {
+		$('#dbf_datagrid').datagrid('reload', {});
+	}
+	function dbf_search() {
+		var sName = $('#dbfsName').combobox('getValue');
+		var aName = $('#dbfaName').combobox('getValue');
+		var paName = $('#dbfpName').combobox('getValue');
+		var status = $('#dbfStatus').combobox('getValue');
+		var sTime = $('#dbfsTime').datebox('getValue');
+		var eTime = $('#dbfeTime').datebox('getValue');
+		var billNo = $('#dbfBillNo').textbox('getValue');
+		var data = {"sName":sName,"aName":aName,"status":status,"paName":paName,"sTime":sTime,"eTime":eTime,"billNo":billNo};
+		$('#dbf_datagrid').datagrid('load', data);
+	}
+	function dbf_cleanSearch(){
+		$('#dbf_datagrid').datagrid('load', {});
+		$('#dbf_search').find('input').val('');
+	}
+	function dbf_pay(){
+		var row = $('#dbf_datagrid').datagrid('getSelected');
+		if (row) {
+			if(row.status == '待支付' || row.status == '已支付未开票'){
+				$('#dbf_dlg').dialog('open').dialog('center').dialog('setTitle', '添加或修改支付信息');
+				$('#dbf_form').form('load', row);
+				$("#dbfId").val(row.id);
+			}
+		}
+	}
+	function dbf_update() {
+		var row = $('#dbf_datagrid').datagrid('getSelected');
+		if (row) {
+			$('#dbf_dlg').dialog('open').dialog('center').dialog('setTitle', '添加或修改支付信息');
+			$('#dbf_form').form('load', row);
+			$("#dbfId").val(row.id);
+		} else {
+			promptMsg();
+		}
+	}
+	function dbf_confirm() {
+		$.ajax({
+			type : "post",
+			url : "${base}/dispBills/savePaymentInfo",
+			dataType : "json",
+			async : "false",
+			data : $("#dbf_form").serialize(),
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#dbf_dlg').dialog('close');
+					dbf_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		})
+	}
+	function dbf_close() {
+		$('#dbf_form').form('clear');
+		$('#dbf_dlg').dialog('close');
+	}
+	$('#dbf_datagrid').datagrid({
+		onDblClickRow: function(rowIndex, rowData){
+			var billNo = rowData['billNo'];
+			$('#dbdf_billno').html("请款单号："+billNo);
+			$('#dbdfsName').textbox('setValue',rowData['sName']);
+			$('#dbdfaName').textbox('setValue',rowData['aName']);
+			$('#dbdfPayDate').datebox('setValue',rowData['payDate']);
+			$('#dbdf_win').window('open');
+			$('#dbdf_datagrid').datagrid({
+			    url:'${base}/dispDetails/list?billNo='+billNo+'&s='+new Date().getTime()
+			});
+		}
+	});
+</script>

@@ -1,0 +1,117 @@
+<script type="text/javascript" src="${base}/js/dateui.js"></script>
+<link rel="stylesheet" type="text/css" href="${base}/css/ym_table.css">
+<script type="text/javascript" src="${base}/js/jquery.edatagrid.js"></script>
+
+<div id="dd_search" class="easyui-panel" title="请款单号的店铺和收款账户信息" style="width:100%;height:28%;padding:8px;">
+	<label class="label-top">店铺名称:</label> 
+	<select class="easyui-combobox" name="ddsName" id="ddsName" data-options="width:150">
+		<option value="" selected="selected">全部</option>
+		<#list stores as s>
+			<option>${s.sName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;
+	<label class="label-top">收款账户名称:</label> 
+	<select class="easyui-combobox" name="ddaName" id="ddaName" data-options="width:150">
+		<option value="" selected="selected">全部</option>
+		<#list accounts as a>
+			<option>${a.aName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;<br>
+	<label class="label-top">付款项目名称:</label> 
+	<select class="easyui-combobox" name="ddiName" id="ddiName" data-options="width:150">
+		<option value="" selected="selected">全部</option>
+		<#list dItems as di>
+			<option>${di.diName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;
+	<label class="label-top">初始化费用:</label>
+	<input class="easyui-textbox" type="text" id="initFee" name="initFee" data-options="editable:false"/>&nbsp;&nbsp;<br>
+	<label class="label-top">输入费用(<span style="color:red;">没有填写默认是初始化费用</span>):</label>
+	<input class="easyui-textbox" type="text" id="ddMoney" name="ddMoney"/>
+	<label class="label-top">备注:</label>
+	<input class="easyui-textbox" type="text" id="ddRemarks" name="ddRemarks"/>
+	<a href="#" class="easyui-linkbutton" onclick="dd_search();" data-options="iconCls:'icon-add'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="dd_add();" data-options="iconCls:'icon-add'">添加</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="dd_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="dd_panel" class="easyui-panel" title="一次性请款明细列表" style="width:100%;height:66%;padding:3px;">
+	<div id="dd_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-reload',plain:true" onclick="dd_refresh()">刷新</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dd_datagrid').edatagrid('addRow')" data-options="iconCls:'icon-add',plain:true">添加</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dd_datagrid').edatagrid('saveRow')" data-options="iconCls:'icon-save',plain:true">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#dd_datagrid').edatagrid('cancelRow')" data-options="iconCls:'icon-undo',plain:true">取消</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="dd_delete()">删除</a>
+	</div>
+	<table id="dd_datagrid" class="easyui-datagrid" style="width:100%;padding: 3px;"
+		data-options="toolbar:'#dd_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/dispDetails/list',singleSelect:true" >
+		<thead>
+			<tr>
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'diName',width:'20%'">一次性费用项名称</th>
+				<th data-options="field:'initFee',width:'12%'">初始化金额</th>
+				<th data-options="field:'money',width:'12%'">实际金额</th>
+				<th data-options="field:'remarks',width:'20%'">备注</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<style>
+	#dd_dlg{
+		width: 580px;
+		height: 240px;
+		padding: 20px 20px;
+	}
+	.lwrb{
+	    width: 77px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function dd_delete() {
+		var row = $('#dd_datagrid').datagrid('getSelected');
+		if (row) {
+			$.messager.confirm("操作提示", "您确定要删除这条记录吗？", function(data){
+				if(data){
+					$.post("${base}/dispDetails/delete", {
+						"id" : row.id
+					}, function() {
+						dd_refresh();
+					}, "json")
+				}
+			});
+		} else {
+			promptMsg();
+		}
+	}
+	function dd_refresh() {
+		$('#dd_datagrid').datagrid('reload', {});
+	}
+	function dd_cleanSearch(){
+		$('#dd_datagrid').datagrid('load', {});
+		$('#dd_search').find('input').val('');
+	}
+	function dd_search(){
+		var sName = $('#ddsName').combobox('getValue');
+		var diName = $('#ddiName').combobox('getValue');
+		if(sName && diName){
+			$.post("${base}/dispDetails/findInitFee", {"sName" : sName,"diName" : diName},function(data){
+				$('#initFee').textbox("setValue",data);
+			});
+		}
+	}
+	function dd_add(){
+		var sName = $('#ddsName').combobox('getValue');
+		var diName = $('#ddiName').combobox('getValue');
+		var aName = $('#ddaName').combobox('getValue');
+		var money = $('#ddMoney').textbox('getValue');
+		var remarks = $('#remarks').textbox('getValue');
+		if(sName && diName && aName){
+			$.post("${base}/dispDetails/saveOrUpdate",{"sName":sName,"diName":diName,"aName":aName,"money":money,"remarks":remarks});
+		}
+		dd_refresh();
+	}
+
+</script>

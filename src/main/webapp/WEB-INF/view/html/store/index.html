@@ -1,0 +1,196 @@
+<script type="text/javascript" src="${base}/jquery-easyui-1.4.4/extension/datagrid-detailview.js"></script>
+
+<div id="store_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">店铺名称:</label>
+	<input class="easyui-combobox" id="storeName" data-options="url:'${base}/store/listStores',valueField:'sName',textField:'sName'">&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="store_search()" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="store_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="store_panel" class="easyui-panel" title="店铺信息" style="width:100%;height:80%;">
+	<div id="store_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="store_add()">添加</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="store_update()">修改</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="store_deletes()">删除</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-download',plain:true" onclick="store_import()">导入</a>
+	</div>
+	<table id="store_datagrid" class="easyui-datagrid" style="width:100%;"
+		data-options="toolbar:'#store_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/store/list'" >
+		<thead>
+			<tr>
+				<th data-options="field:'ck',checkbox:true"></th>
+				<th data-options="field:'id',width:120,hidden:true">店铺编号</th>
+				<th data-options="field:'name',width:'12%'">店铺名称</th>
+				<th data-options="field:'areas',width:'4%'">面积</th>
+				<th data-options="field:'brand',width:'7%'">品牌</th>
+				<th data-options="field:'paymentDay',width:'6%'">付款批次</th>
+				<th data-options="field:'openingDate',width:'7%'">开业日期</th>
+				<th data-options="field:'closeDate',width:'7%'">撤铺日期</th>
+				<th data-options="field:'berthNo',width:'7%'">铺位号</th>
+				<th data-options="field:'contractSubject',width:'9%'">合同抬头</th>
+				<th data-options="field:'contractStime',width:'8%'">合同起始日期</th>
+				<th data-options="field:'contractEtime',width:'8%'">合同终止日期</th>
+				<th data-options="field:'freeRentStime',width:'8%'">免租起始日期</th>
+				<th data-options="field:'freeRentEtime',width:'8%'">免租终止日期</th>
+				<th data-options="field:'operationContact',width:'12%'">运营联系人/电话</th>
+				<th data-options="field:'financeContact',width:'12%'">财务联系人/电话</th>
+				<th data-options="field:'address',width:'12%'">地址</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="store_dlg" class="easyui-dialog" data-options="buttons:'#store_buttons',closed:true" style="width: 700px;">
+	<form id="store_form" method="post" enctype="multipart/form-data" action="${base}/store/save">
+		<div class="p-dlg-div">
+			<div style="margin: 20px 50px;float:left;">
+				<input type="hidden" id="sId" name="id"></input> 
+				<p><span class="lwsa">店铺名称:</span><input class="easyui-textbox" type="text" name="name"/><br>
+				<p><span class="lwsa">品牌:</span><input class="easyui-textbox" type="text" name="brand"/><br>
+				<p><span class="lwsa">铺位号:</span><input class="easyui-textbox" type="text" name="berthNo"/><br>
+				<p><span class="lwsa">开业日期:</span><input class="easyui-datebox" name="openingDate"/><br>
+				<p><span class="lwsa">合同起始日期:</span><input class="easyui-datebox" name="contractStime"/><br>
+				<p><span class="lwsa">免租起始日期:</span><input class="easyui-datebox" name="freeRentStime"/><br>
+				<p><span class="lwsa">财务联系人/电话:</span><input class="easyui-textbox" type="text" name="financeContact"/><br>
+				<p><span class="lwsa">地址:</span><input class="easyui-textbox" type="text" name="address"/><br>
+			</div>
+			<div style="padding: 20px;">
+				<p><span class="lwsa">面积:</span><input class="easyui-textbox" type="text" name="areas"/><br>
+				<p><span class="lwsa">付款批次:</span><input class="easyui-numberbox" data-options="precision:0" name="paymentDay"/>
+				<p><span class="lwsa">合同抬头:</span><input class="easyui-textbox" type="text" name="contractSubject"/><br>
+				<p><span class="lwsa">撤铺日期:</span><input class="easyui-datebox" name="closeDate"/><br>
+				<p><span class="lwsa">合同终止日期:</span><input class="easyui-datebox" name="contractEtime"/><br>
+				<p><span class="lwsa">免租终止日期:</span><input class="easyui-datebox" name="freeRentEtime"/><br>
+				<p><span class="lwsa">运营联系人/电话:</span><input class="easyui-textbox" type="text" name="operationContact"/><br>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="store_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="store_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="store_close()" style="width: 90px">取消</a>
+</div>
+
+<div id="store_import_dlg" class="easyui-dialog" data-options="buttons:'#store_import_buttons',closed:true">
+	<form id="store_import_form" method="post" enctype="multipart/form-data">
+		<div>
+			<input type="file" name="execlFile" style="text-align:center;margin:0 auto;">
+		</div>
+	</form>
+</div>
+<div id="store_import_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="import_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="import_close()" style="width: 90px">取消</a>
+</div>
+
+<style>
+	.lwsa{
+	    width: 100px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function store_cleanSearch(){
+		$('#store_datagrid').datagrid('load', {});
+		$('#store_search').find('input').val('');
+	}
+	function store_add() {
+		$('#store_form').form('clear');
+		$('#store_dlg').dialog('open').dialog('center').dialog('setTitle', '新增店铺信息');
+	}
+	function store_update() {
+		var row = $('#store_datagrid').datagrid('getSelected');
+		if (row) {
+			$('#store_dlg').dialog('open').dialog('center').dialog('setTitle', '修改店铺信息');
+			$('#store_form').form('load', row);
+			$("#sId").val(row.id);
+		} else {
+			promptMsg();
+		}
+	}
+	function store_confirm() {
+		$.ajax({
+			type : "post",
+			url : "${base}/store/saveOrUpdate",
+			dataType : "json",
+			async : "false",
+			data : $("#store_form").serialize(),
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#store_dlg').dialog('close');
+					store_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		})
+	}
+	function store_delete() {
+		var row = $('#store_datagrid').datagrid('getSelected');
+		if (row) {
+			$.messager.confirm("操作提示", "您确定要删除这条记录吗？", function(data){
+				if(data){
+					$.post("${base}/store/delete", {
+						"id" : row.id
+					}, function() {
+						store_refresh();
+					}, "json")
+				}
+			});
+		} else {
+			promptMsg();
+		}
+	}
+	function store_deletes() {
+		batchDelete("store_datagrid", "${base}/store/deletes", "store_refresh();");
+	}
+	function store_refresh() {
+		$('#store_datagrid').datagrid('reload', {});
+	}
+	function store_close() {
+		$('#store_form').form('clear');
+		$('#store_dlg').dialog('close');
+	}
+	function store_search() {
+		var sName = $('#storeName').combobox('getValue');
+		var data = {"sName" : sName};
+		$('#store_datagrid').datagrid('load', data);
+	}
+	function store_import() {
+		$('#store_import_form').form('clear');
+		$('#store_import_dlg').dialog('open').dialog('center').dialog('setTitle', '店铺信息导入');
+	}
+	function import_close() {
+		$('#store_import_form').form('clear');
+		$('#store_import_dlg').dialog('close');
+	}
+	function import_confirm() {
+		var formData = new FormData($("#store_import_form")[0]); 
+		$.ajax({ 
+			url: '${base}/store/importStores', 
+			type: 'POST', 
+			data: formData,
+			async: false, 
+			cache: false, 
+			contentType: false, 
+			processData: false, 
+			success: function(data) {
+			if (data.code == 12000) {
+				$('#store_import_dlg').dialog('close');
+				store_refresh();
+			} else {
+				$.messager.alert('提示',data.msg,'info');
+				$('#store_import_dlg').dialog('close');
+			}
+			}, 
+			error: function(data) {
+				promptMsgParam(msg);
+				$('#store_import_dlg').dialog('close');
+			} 
+		}); 
+	}
+</script>

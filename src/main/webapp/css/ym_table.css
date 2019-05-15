@@ -1,0 +1,70 @@
+@CHARSET "UTF-8";
+
+.lwff {
+	width: 60px;
+	display: inline-block;
+}
+
+.tdLeft {
+	width: 20%;
+	text-align: right;
+}
+
+.tdRight {
+	width: 30%;
+	text-align: left;
+}
+
+.tdLefts {
+	width: 20%;
+	text-align: right;
+}
+
+.tdRights {
+	width: 70%;
+	text-align: left;
+}
+
+.mytable {
+	padding: 0;
+	margin: 10px auto;
+	border-collapse: collapse;
+	font-family: @ 宋体;
+	empty-cells: show;
+}
+
+.mytable caption {
+	font-size: 12px;
+	color: #0E2D5F;
+	height: 16px;
+	line-height: 16px;
+	border: 1px dashed red;
+	empty-cells: show;
+}
+
+.mytable tr th {
+	border: 1px dashed #C1DAD7;
+	letter-spacing: 2px;
+	text-align: left;
+	padding: 6px 6px 6px 12px;
+	font-size: 13px;
+	height: 16px;
+	line-height: 16px;
+	empty-cells: show;
+}
+
+.mytable tr td {
+	font-size: 12px;
+	border: 1px dashed #C1DAD7;
+	padding: 6px 6px 6px 12px;
+	empty-cells: show;
+	border-collapse: collapse;
+}
+
+.cursor {
+	cursor: pointer;
+}
+
+.tdbackground {
+	background-color: #FFE48D;
+}

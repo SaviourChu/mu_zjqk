@@ -1,0 +1,177 @@
+<div id="account_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">收款账户名称:</label>
+	<input class="easyui-combobox" id="accountName" data-options="url:'${base}/account/listAccounts',valueField:'aName',textField:'aName'">&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="account_search()" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="account_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="account_panel" class="easyui-panel" title="收款账户信息" style="width:100%;height:80%;">
+	<div id="account_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="account_add()">添加</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="account_update()">修改</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="account_deletes()">删除</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-download',plain:true" onclick="account_import()">导入</a>
+	</div>
+	<table id="account_datagrid" class="easyui-datagrid" style="width:100%;"
+		data-options="toolbar:'#account_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/account/list'" >
+		<thead>
+			<tr>
+				<th data-options="field:'ck',checkbox:true"></th>
+				<th data-options="field:'id',width:120,hidden:true">收款账户编号</th>
+				<th data-options="field:'name',width:'20%'">收款账户名称</th>
+				<th data-options="field:'account',width:'20%'">收款账号</th>
+				<th data-options="field:'bank',width:'20%'">开户行</th>
+				<th data-options="field:'snames',width:'40%'">关联店铺</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="account_dlg" class="easyui-dialog" data-options="buttons:'#account_buttons',closed:true">
+	<form id="account_form" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div style="margin:20px 30px;text-align: center;">
+				<input type="hidden" id="aId" name="id"></input> 
+				<p><span class="lwa">收款账户名称:</span><input class="easyui-textbox" type="text" name="name"/>
+				<p><span class="lwa">收款账号:</span><input class="easyui-textbox" type="text" name="account"/>
+				<p><span class="lwa">开户行:</span><input class="easyui-textbox" type="text" name="bank"/>
+				<p><span class="lwa">关联店铺:</span>
+				<input id="hhh" class="easyui-combobox" name="sNames" data-options="height:60,multiline:true" />  
+			</div>
+		</div>
+	</form>
+</div>
+<div id="account_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="account_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="account_close()" style="width: 90px">取消</a>
+</div>
+
+<div id="account_import_dlg" class="easyui-dialog" data-options="buttons:'#account_import_buttons',closed:true">
+	<form id="account_import_form" method="post" enctype="multipart/form-data">
+		<div>
+			<input type="file" name="execlFile" style="text-align:center;margin:0 auto;">
+		</div>
+	</form>
+</div>
+<div id="account_import_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="import_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="import_close()" style="width: 90px">取消</a>
+</div>
+
+<style>
+	#account_dlg{
+		width: 550px;
+		height: 280px;
+		padding: 20px 20px;
+	}
+	.lwa{
+	    width: 80px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function account_cleanSearch(){
+		$('#account_datagrid').datagrid('load', {});
+		$('#account_search').find('input').val('');
+	}
+	$('#hhh').combobox({  
+	    url:'${base}/store/listStores',
+	    multiple:true, //支持多选
+	    valueField:'sName',
+	    textField:'sName'
+	});
+	$(function() {
+		var sw = $(window).width();
+		if (sw < 767) {
+			$('body').layout('collapse', 'west');
+		}
+		$('.navigation-toggle span').bind('click', function() {
+			$('#head-menu').toggle();
+		});
+	});
+	function account_add() {
+		$('#account_form').form('clear');
+		$('#account_dlg').dialog('open').dialog('center').dialog('setTitle', '新增收款账户信息');
+	}
+	function account_update() {
+		var row = $('#account_datagrid').datagrid('getSelected');
+		if (row) {
+			$('#account_dlg').dialog('open').dialog('center').dialog('setTitle', '修改收款账户信息');
+			$('#account_form').form('load', row);
+			$("#aId").val(row.id);
+		} else {
+			promptMsg();
+		}
+	}
+	function account_confirm() {
+		var s = $("#account_form").serialize();
+		var data = s.replace(/&sNames=/g,",").replace(',', '&sNames=');
+		$.ajax({
+			type : "post",
+			url : "${base}/account/saveOrUpdate",
+			dataType : "json",
+			async : "false",
+			data : data,
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#account_dlg').dialog('close');
+					account_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		});
+	}
+	function account_deletes() {
+		batchDelete("account_datagrid", "${base}/account/deletes", "account_refresh();");
+	}
+	function account_refresh() {
+		$('#account_datagrid').datagrid('reload', {});
+	}
+	function account_close() {
+		$('#account_form').form('clear');
+		$('#account_dlg').dialog('close');
+	}
+	function account_search() {
+		var aName = $('#accountName').combobox('getValue');
+		var data = {"aName" : aName};
+		$('#account_datagrid').datagrid('load', data);
+	}
+	function account_import() {
+		$('#account_import_form').form('clear');
+		$('#account_import_dlg').dialog('open').dialog('center').dialog('setTitle', '收款信息导入');
+	}
+	function import_close() {
+		$('#account_import_form').form('clear');
+		$('#account_import_dlg').dialog('close');
+	}
+	function import_confirm() {
+		var formData = new FormData($("#account_import_form")[0]); 
+		$.ajax({ 
+			url: '${base}/account/importAccounts', 
+			type: 'POST', 
+			data: formData,
+			async: false, 
+			cache: false, 
+			contentType: false, 
+			processData: false, 
+			success: function(data) {
+			if (data.code == 12000) {
+				$('#account_import_dlg').dialog('close');
+				account_refresh();
+			} else {
+				$.messager.alert('提示',data.msg,'info');
+				$('#account_import_dlg').dialog('close');
+			}
+			}, 
+			error: function(data) {
+				promptMsgParam(msg);
+				$('#account_import_dlg').dialog('close');
+			} 
+		}); 
+	}
+</script>

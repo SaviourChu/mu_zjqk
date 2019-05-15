@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>租金请款系统-登录页面</title>
+		<link rel="stylesheet" type="text/css" href="${base}/jquery-easyui-1.4.4/themes/bootstrap/easyui.css">
+		<link rel="stylesheet" type="text/css" href="${base}/jquery-easyui-1.4.4/themes/icon.css" />
+		<script type="text/javascript" src="${base}/js/jquery.min.js"></script>
+		<script type="text/javascript" src="${base}/jquery-easyui-1.4.4/jquery.easyui.min.js"></script>
+		<script type="text/javascript" src="${base}/jquery-easyui-1.4.4/locale/easyui-lang-zh_CN.js"></script>
+	</head>
+	<body style="background-color: #f5f5f5">
+		<div style="margin: 150px;"></div>
+		<div style="padding-left: 30%">
+			<div class="easyui-panel" title="租金请款系统" style="width: 480px; padding: 40px 80px 50px 80px;">
+				<form action="${base}/security/user/dologin" method="post" id="login_form">
+					<div style="margin-bottom: 10px">
+						<input id="username" name="user.username" class="easyui-textbox" style="width: 100%; height: 40px; padding: 12px" 
+						data-options="prompt:'请输入登录名',iconCls:'icon-man',iconWidth:38,required:true,validType:'username'">
+					</div>
+					<div style="margin-bottom: 20px">
+						<input id="password" name="user.password" class="easyui-textbox" type="password" style="width: 100%; height: 40px; padding: 12px" 
+						data-options="prompt:'请输入密码',iconCls:'icon-lock',iconWidth:38,required:true,validType:'length[6,12]'">
+					</div>
+					<div style="margin-bottom: 20px">
+						<input class="easyui-combobox" id="classify" name="classify" 
+						data-options="url:'${base}/store/classifys',valueField:'classify',textField:'classify',panelHeight:'auto'" style="width: 100%;">
+					</div>
+					<div style="margin-bottom: 20px"></div>
+					<div>
+						<a href="javascript:void(0)" onclick="doLogin()" class="easyui-linkbutton" 
+						data-options="iconCls:'icon-ok'" style="padding: 5px 0px; width: 100%;"> 
+						<span style="font-size: 14px;">登 录</span>
+						</a>
+					</div>
+				</form>
+			</div>
+		</div>
+		<script type="text/javascript">
+			var flag = true;
+			function doLogin() {
+				$('#login_form').form('submit', {
+					onSubmit : function() {
+						return $(this).form('validate');
+					},
+					success : function(resp) {
+						var resp = $.parseJSON(resp);
+						if (resp.code == 12000) {
+							window.location.href = "${base}/";
+						} else {
+							$.messager.alert('提示', resp.msg, 'error', function() {
+								flag = true;
+							});
+						}
+					}
+				});
+			}
+			$.extend($.fn.validatebox.defaults.rules, {
+				username : {
+					validator : function(value, param) {
+						var reg = /^[a-z0-9]{2,16}$/;
+						return reg.test(value.trim());
+					},
+					message : '登录名有误'
+				}
+			});
+			//回车登录
+			$(document).keydown(function(e) {
+				if (flag && e.keyCode == 13) {
+					flag = false;
+					doLogin();
+				}
+			});
+			$('#classify').combobox({   
+			    onLoadSuccess : function() {  
+			        $("#classify").combobox("setValue", "奶茶");
+			    }  
+			});
+		</script>
+	</body>
+</html>

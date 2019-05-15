@@ -1,0 +1,158 @@
+<div id="its_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">发票抬头名称:</label> 
+	<select class="easyui-combobox" name="itName" id="itName" data-options="width:150">
+		<option value="" selected="selected"></option>
+		<#list its as i>
+			<option>${i.itName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="its_search()" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="its_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="its_panel" class="easyui-panel" title="发票抬头信息" style="width:100%;height:80%;">
+	<div id="its_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="its_add()">添加</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="its_update()">修改</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="its_deletes()">删除</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-download',plain:true" onclick="its_import()">导入</a>
+	</div>
+	<table id="its_datagrid" class="easyui-datagrid" style="width:100%;"
+		data-options="toolbar:'#its_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/invoiceTitle/list'" >
+		<thead>
+			<tr>
+				<th data-options="field:'ck',checkbox:true"></th>
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'name',width:'30%'">发票抬头名称</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="its_dlg" class="easyui-dialog" data-options="buttons:'#its_buttons',closed:true">
+	<form id="its_form" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div style="margin:70px 30px;text-align: center;">
+				<input type="hidden" id="itId" name="id"></input> 
+				<p><span class="lwa">发票抬头名称:</span><input class="easyui-textbox" type="text" name="name"/>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="its_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="its_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="its_close()" style="width: 90px">取消</a>
+</div>
+
+<div id="its_import_dlg" class="easyui-dialog" data-options="buttons:'#its_import_buttons',closed:true">
+	<form id="its_import_form" method="post" enctype="multipart/form-data">
+		<div>
+			<input type="file" name="execlFile" style="text-align:center;margin:0 auto;">
+		</div>
+	</form>
+</div>
+<div id="its_import_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="import_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="import_close()" style="width: 90px">取消</a>
+</div>
+
+<style>
+	#its_dlg{
+		width: 500px;
+		height: 220px;
+		padding: 20px 20px;
+	}
+	.lwa{
+	    width: 80px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function its_cleanSearch(){
+		$('#its_datagrid').datagrid('load', {});
+		$('#its_search').find('input').val('');
+	}
+	function its_add() {
+		$('#its_form').form('clear');
+		$('#its_dlg').dialog('open').dialog('center').dialog('setTitle', '新增发票抬头信息');
+	}
+	function its_update() {
+		var row = $('#its_datagrid').datagrid('getSelected');
+		if (row) {
+			$('#its_dlg').dialog('open').dialog('center').dialog('setTitle', '修改发票抬头信息');
+			$('#its_form').form('load', row);
+			$("#aId").val(row.id);
+		} else {
+			promptMsg();
+		}
+	}
+	function its_confirm() {
+		$.ajax({
+			type : "post",
+			url : "${base}/invoiceTitle/saveOrUpdate",
+			dataType : "json",
+			async : "false",
+			data : $("#its_form").serialize(),
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#its_dlg').dialog('close');
+					its_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		});
+	}
+	function its_deletes() {
+		batchDelete("its_datagrid", "${base}/invoiceTitle/deletes", "its_refresh();");
+	}
+	function its_refresh() {
+		$('#its_datagrid').datagrid('reload', {});
+	}
+	function its_close() {
+		$('#its_form').form('clear');
+		$('#its_dlg').dialog('close');
+	}
+	function its_search() {
+		var itName = $('#itName').combobox('getValue');
+		var data = {"itName" : itName};
+		$('#its_datagrid').datagrid('load', data);
+	}
+	function its_import() {
+		$('#its_import_form').form('clear');
+		$('#its_import_dlg').dialog('open').dialog('center').dialog('setTitle', '发票抬头信息导入');
+	}
+	function import_close() {
+		$('#its_import_form').form('clear');
+		$('#its_import_dlg').dialog('close');
+	}
+	function import_confirm() {
+		var formData = new FormData($("#its_import_form")[0]); 
+		$.ajax({ 
+			url: '${base}/invoiceTitle/importInvoiceTitles', 
+			type: 'POST', 
+			data: formData,
+			async: false, 
+			cache: false, 
+			contentType: false, 
+			processData: false, 
+			success: function(data) {
+			if (data.code == 12000) {
+				$('#its_import_dlg').dialog('close');
+				its_refresh();
+			} else {
+				$.messager.alert('提示',data.msg,'info');
+				$('#its_import_dlg').dialog('close');
+			}
+			}, 
+			error: function(data) {
+				promptMsgParam(msg);
+				$('#its_import_dlg').dialog('close');
+			} 
+		}); 
+	}
+</script>

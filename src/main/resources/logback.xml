@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <!-- 定义log 文件的 home 目录 -->
+  <property name="LOG_HOME" value="C:/zjqkLog"></property>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <Pattern>[%date{yyyy-MM-dd HH:mm:ss}] [%-5level] --%mdc{client}%msg%n</Pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <encoding>UTF-8</encoding>
+    <file>${LOG_HOME}/file.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}.gz</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>[%date{yyyy-MM-dd HH:mm:ss}] [%-5level] [%logger:%line]--%mdc{client} %msg%n</pattern>
+    </encoder>
+  </appender>
+  
+  <logger name="jdbc.sqlonly" level="OFF"></logger>
+	<!-- <logger name="jdbc.sqltiming" level="INFO"> -->
+	<logger name="jdbc.sqltiming" level="ERROR">
+		<appender-ref ref="FILE" />
+	</logger>
+	<logger name="jdbc.audit" level="OFF"></logger>
+	<logger name="jdbc.resultset" level="OFF"></logger>
+	<logger name="jdbc.connection" level="OFF"></logger>
+  <!-- <root level="DEBUG"> -->
+  <root level="ERROR">
+    <appender-ref ref="STDOUT" />
+    <appender-ref ref="FILE" />
+  </root>
+</configuration>

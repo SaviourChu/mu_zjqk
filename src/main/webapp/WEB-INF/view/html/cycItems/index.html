@@ -1,0 +1,158 @@
+<div id="cyc_item_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">费用项名称:</label> 
+	<select class="easyui-combobox" name="ciName" id="ciName" data-options="width:150">
+		<option value="" selected="selected"></option>
+		<#list ciItems as ci>
+			<option>${ci.ciName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="cyc_item_search()" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="cyc_item_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="cyc_item_panel" class="easyui-panel" title="周期性费用项信息" style="width:100%;height:80%;padding:3px;">
+	<div id="di_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="cyc_item_add()">添加</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="cyc_item_update()">修改</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="cyc_item_deletes()">删除</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-download',plain:true" onclick="cyc_item_import()">导入</a>
+	</div>
+	<table id="cyc_item_datagrid" class="easyui-datagrid" style="width:100%;"
+		data-options="toolbar:'#cyc_item_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/cycItems/list'" >
+		<thead>
+			<tr>
+				<th data-options="field:'ck',checkbox:true"></th>
+				<th data-options="field:'id',width:120,hidden:true">费用项编号</th>
+				<th data-options="field:'ciName',width:'20%'">周期性费用项名称</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="cyc_item_dlg" class="easyui-dialog" data-options="buttons:'#cyc_item_buttons',closed:true">
+	<form id="cyc_item_form" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div style="margin:50px 30px;text-align: center;">
+				<input type="hidden" id="ciId" name="id"></input> 
+				<p><span class="lwci">费用项名称:</span><input class="easyui-textbox" type="text" name="ciName"/>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="cyc_item_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="cyc_item_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="cyc_item_close()" style="width: 90px">取消</a>
+</div>
+
+<div id="cyc_item_import_dlg" class="easyui-dialog" data-options="buttons:'#cyc_item_import_buttons',closed:true">
+	<form id="cyc_item_import_form" method="post" enctype="multipart/form-data">
+		<div>
+			<input type="file" name="execlFile" style="text-align:center;margin:0 auto;">
+		</div>
+	</form>
+</div>
+<div id="cyc_item_import_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="import_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="import_close()" style="width: 90px">取消</a>
+</div>
+
+<style>
+	#cyc_item_dlg{
+		width: 460px;
+		height: 190px;
+		padding: 20px 20px;
+	}
+	.lwci{
+	    width: 66px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function cyc_item_add() {
+		$('#cyc_item_form').form('clear');
+		$('#cyc_item_dlg').dialog('open').dialog('center').dialog('setTitle', '新增周期性费用项信息');
+	}
+	function cyc_item_update() {
+		var row = $('#cyc_item_datagrid').datagrid('getSelected');
+		if (row) {
+			$('#cyc_item_dlg').dialog('open').dialog('center').dialog('setTitle', '修改周期性费用项信息');
+			$('#cyc_item_form').form('load', row);
+			$("#ciId").val(row.id);
+		} else {
+			promptMsg();
+		}
+	}
+	function cyc_item_confirm() {
+		$.ajax({
+			type : "post",
+			url : "${base}/cycItems/saveOrUpdate",
+			dataType : "json",
+			async : "false",
+			data : $("#cyc_item_form").serialize(),
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#cyc_item_dlg').dialog('close');
+					cyc_item_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		})
+	}
+	function cyc_item_deletes() {
+		batchDelete("cyc_item_datagrid", "${base}/cycItems/deletes", "cyc_item_refresh();");
+	}
+	function cyc_item_refresh() {
+		$('#cyc_item_datagrid').datagrid('reload', {});
+	}
+	function cyc_item_close() {
+		$('#cyc_item_form').form('clear');
+		$('#cyc_item_dlg').dialog('close');
+	}
+	function cyc_item_search() {
+		var ciName = $('#ciName').combobox('getValue');
+		var data = {"ciName":ciName};
+		$('#cyc_item_datagrid').datagrid('load', data);
+	}
+	function cyc_item_cleanSearch(){
+		$('#cyc_item_datagrid').datagrid('load', {});
+		$('#cyc_item_search').find('input').val('');
+	}
+	function cyc_item_import() {
+		$('#cyc_item_import_form').form('clear');
+		$('#cyc_item_import_dlg').dialog('open').dialog('center').dialog('setTitle', '周期性费用项导入');
+	}
+	function import_close() {
+		$('#cyc_item_import_form').form('clear');
+		$('#cyc_item_import_dlg').dialog('close');
+	}
+	function import_confirm() {
+		var formData = new FormData($("#cyc_item_import_form")[0]); 
+		$.ajax({ 
+			url: '${base}/cycItems/importCycItems', 
+			type: 'POST', 
+			data: formData,
+			async: false, 
+			cache: false, 
+			contentType: false, 
+			processData: false, 
+			success: function(data) {
+			if (data.code == 12000) {
+				$('#cyc_item_import_dlg').dialog('close');
+				cyc_item_refresh();
+			} else {
+				$.messager.alert('提示',data.msg,'info');
+				$('#cyc_item_import_dlg').dialog('close');
+			}
+			}, 
+			error: function(data) {
+				promptMsgParam(msg);
+				$('#cyc_item_import_dlg').dialog('close');
+			} 
+		}); 
+	}
+</script>

@@ -1,0 +1,167 @@
+<script type="text/javascript" src="${base}/js/dateui.js"></script>
+<link rel="stylesheet" type="text/css" href="${base}/css/ym_table.css">
+
+<div id="rb_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">店铺名称:</label>
+	<input class="easyui-combobox" id="rbsName" data-options="url:'${base}/store/listStores',valueField:'sName',textField:'sName'">&nbsp;&nbsp;
+	<label class="label-top">选择排序:</label> 
+	<select class="easyui-combobox" id="rbSort" data-options="panelHeight:'auto'">
+		<option value="1" selected="selected">按所属年月排序</option>
+		<option value="2">按开业日期排序</option>
+	</select>&nbsp;&nbsp;
+	<label class="label-top">选择年月<span style="color:red">(录入数据时必选)</span>:</label> 
+	<input class="easyui-textbox" type="text" id="ymData" name="ymData" data-options="width:120"/>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="rb_search();" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="rb_add();" data-options="iconCls:'icon-add'">新增</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="rb_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="rb_panel" class="easyui-panel" title="营业额信息" style="width:100%;height:80%;">
+	<div id="rb_toolbar">
+		<!-- <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="rb_add()">添加</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="rb_update()">修改</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#rb_datagrid').edatagrid('destroyRow')" data-options="iconCls:'icon-remove',plain:true">销毁</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#rb_datagrid').edatagrid('addRow')" data-options="iconCls:'icon-add',plain:true">添加</a> -->
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#rb_datagrid').edatagrid('saveRow')" data-options="iconCls:'icon-save',plain:true">保存</a>
+		<a href="#" class="easyui-linkbutton" onclick="javascript:$('#rb_datagrid').edatagrid('cancelRow')" data-options="iconCls:'icon-undo',plain:true">取消</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="rb_deletes()">删除</a>
+	</div>
+	<table id="rb_datagrid" class="easyui-datagrid" style="width:100%;"
+		data-options="toolbar:'#rb_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/rentBill/list',singleSelect:true" >
+		<thead>
+			<tr>
+				<th data-options="field:'id',width:120,hidden:true">营业额编号</th>
+				<th data-options="field:'ymDate',width:'10%'">所属年月</th>
+				<th data-options="field:'sName',width:'20%'">店铺名称</th>
+				<th data-options="field:'openingDate',width:'12%'">开业日期</th>
+				<th data-options="field:'closeDate',width:'12%'">撤铺日期</th>
+				<th data-options="field:'actualIncome',width:'15%',editor:{type:'validatebox',options:{required:true}}">实际收入</th>
+				<th data-options="field:'shopIncome',width:'15%',editor:{type:'validatebox',options:{required:true}}">上报商场收入</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="rb_dlg" class="easyui-dialog" data-options="buttons:'#rb_buttons',closed:true">
+	<form id="rb_form" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div style="margin:20px 30px;text-align:center;">
+				<input type="hidden" id="rId" name="id"></input> 
+				<p><span class="lwrb">店铺名称:</span>
+				<select class="easyui-combobox" name="sName" data-options="width:164">
+					<#list stores as s>
+						<option>${s.sName!}</option>
+				    </#list>
+				</select><br>
+				<p><span class="lwrb">所属年月:</span><input class="easyui-textbox" type="text" id="rbYearMonth" name="ymDate"/><br>
+				<p><span class="lwrb">实际收入:</span><input class="easyui-numberbox" data-options="precision:2,min:0" name="actualIncome"/><br>
+				<p><span class="lwrb">上报商场收入:</span><input class="easyui-numberbox" data-options="precision:2,min:0" name="shopIncome"/><br>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="rb_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="rb_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="rb_close()" style="width: 90px">取消</a>
+</div>
+
+<style>
+	#rb_dlg{
+		width: 580px;
+		height: 240px;
+		padding: 20px 20px;
+	}
+	.lwrb{
+	    width: 77px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	
+	$("#rb_datagrid").edatagrid({
+	    url:'${base}/rentBill/list',
+	    saveUrl:'${base}/rentBill/saveOrUpdate',
+	    updateUrl:'${base}/rentBill/saveOrUpdate',
+	    destroyUrl:'${base}/rentBill/saveOrUpdate'
+	});
+	
+	$(function(){
+		$('#rbYearMonth').combobox('yearandmonth');
+		$('#ymData').combobox('yearandmonth');
+		$('#rb_datagrid').edatagrid({});
+	});
+	function rb_add() {
+		$('#rb_form').form('clear');
+		$('#rb_dlg').dialog('open').dialog('center').dialog('setTitle', '新增营业额记录信息');
+	}
+	function rb_update() {
+		var row = $('#rb_datagrid').datagrid('getSelected');
+		if (row) {
+			$('#rb_dlg').dialog('open').dialog('center').dialog('setTitle', '修改营业额记录信息');
+			$('#rb_form').form('load', row);
+			$("#rId").val(row.id);
+		} else {
+			promptMsg();
+		}
+	}
+	function rb_confirm() {
+		$.ajax({
+			type : "post",
+			url : "${base}/rentBill/saveOrUpdate",
+			dataType : "json",
+			async : "false",
+			data : $("#rb_form").serialize(),
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#rb_dlg').dialog('close');
+					rb_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		})
+	}
+	function rb_deletes() {
+		batchDelete("rb_datagrid", "${base}/rentBill/deletes", "rb_refresh();");
+	}
+	function rb_refresh() {
+		$('#rb_datagrid').datagrid('reload', {});
+	}
+	function rb_close() {
+		$('#rb_form').form('clear');
+		$('#rb_dlg').dialog('close');
+	}
+	function rb_search() {
+		var sName = $('#rbsName').combobox('getValue');
+		var sort = $('#rbSort').combobox('getValue');
+		var ymData = $('#ymData').textbox('getValue');
+		var data = {"sName" : sName,"sort" : sort,"ymData" : ymData};
+		$('#rb_datagrid').datagrid('load', data);
+	}
+	function rb_add() {
+		var sName = $('#rbsName').combobox('getValue');
+		var ymData = $('#ymData').textbox('getValue');
+		$.ajax({
+			type : "post",
+			url : "${base}/rentBill/add",
+			async : "false",
+			data : {"sName" : sName,"ymData" : ymData},
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#rb_dlg').dialog('close');
+					rb_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			}
+		})
+	}
+	function rb_cleanSearch(){
+		$('#rb_datagrid').datagrid('load', {});
+		$('#rb_search').find('input').val('');
+	}
+</script>

@@ -1,0 +1,155 @@
+<script type="text/javascript" src="${base}/js/jquery.edatagrid.js"></script>
+
+<div id="cyc_fees_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">付款批次:</label> 
+	<input class="easyui-combobox" id="cfkpc" data-options="url:'${base}/store/paymentDays',valueField:'dayNums',textField:'dayNums',width:80">&nbsp;&nbsp;
+	<label class="label-top">店铺名称:</label> 
+	<input class="easyui-combobox" id="cdpmc" data-options="valueField:'sName',textField:'sName'" />&nbsp;&nbsp;
+	<label class="label-top">收款账户:</label>
+	<input class="easyui-combobox" id="cskzh" data-options="url:'${base}/account/listAccounts',valueField:'aName',textField:'aName'">&nbsp;&nbsp;
+	<label class="label-top">单号:</label>
+	<input class="easyui-textbox"type="text" id="cdh" name="cdh" data-options="width:150"/><br>
+	<label class="label-top">制单日期:</label>
+	<input class="easyui-datebox" id="cstime" name="cstime" data-options="width:100,editable:false"/>&nbsp;&nbsp;~&nbsp;
+	<input class="easyui-datebox" id="cetime" name="cetime" data-options="width:100,editable:false"/>&nbsp;&nbsp;
+	<label class="label-top">状态:</label> 
+	<select class="easyui-combobox" id="czt" name="czt" data-options="width:140,panelHeight:'auto'">
+		<option value="" selected="selected"></option>
+		<option value="1">未提交</option>
+		<option value="2">待审批</option>
+		<option value="3">待支付</option>
+		<option value="5">审批退回</option>
+		<option value="4">已支付未开票</option>
+		<option value="6">部分发票</option>
+		<option value="7">发票已全</option>
+	</select>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="cyc_fees_search();" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="cyc_fees_clean();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="cyc_fees_panel" class="easyui-panel" title="周期性请款记录" style="width:100%;height:80%;">
+	<div id="cyc_fees_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-upload',plain:true" onclick="cyc_fees_export()">导出</a>
+	</div>
+	<table id="cyc_fees_datagrid" class="easyui-datagrid" style="width:100%;" 
+		data-options="toolbar:'#cyc_fees_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/cycBills/cycFeesCount'" >
+		<thead>
+			<tr>
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'createTime',width:'7%'">制单日期</th>
+				<th data-options="field:'billNo',width:'10%'">单号</th>
+				<th data-options="field:'sName',width:'10%'">店铺名称</th>
+				<th data-options="field:'totalMoney',width:'6%',formatter:gshje">请款金额</th>
+				<th data-options="field:'payDate',width:'8%'">申请支付日期</th>
+				<th data-options="field:'actualMoney',width:'8%',formatter:gshje">实际支付金额</th>
+				<th data-options="field:'actualDate',width:'8%'">实际支付日期</th>
+				<th data-options="field:'pName',width:'10%'">付款账户</th>
+				<th data-options="field:'account',width:'8%'">付款账号</th>
+				<th data-options="field:'bank',width:'6%'">开户行</th>
+				<th data-options="field:'nopayMoney',width:'8%',formatter:gshje">实际未付金额</th>
+				<th data-options="field:'status',width:'8%',formatter:csFlag">状态</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="cmx_win" class="easyui-window" title="<span id='cmx_billno' style='color:red;'></span>" 
+	data-options="modal:true,closed:true,minimizable:false" style="width:900px;top:60px;height:500px;">
+	<div id="cmx_search" class="easyui-panel" title="请款单信息" style="padding:5px;">
+		<div>
+			<label class="label-top">店铺名称:</label>
+			<input class="easyui-textbox" type="text" id="cmxsName" name="cmxsName" data-options="editable:false">&nbsp;&nbsp;
+			<label class="label-top">收款账户:</label> 
+			<input class="easyui-textbox" type="text" id="cmxaName" name="cmxaName" data-options="editable:false">&nbsp;&nbsp;
+			<label class="label-top">申请支付日期:</label>
+			<input class="easyui-datebox" id="cmxPayDate" name="cmxPayDate" data-options="editable:false"/>
+		</div>
+	</div>
+	<div id="cmx_panel" class="easyui-panel" title="周期性请款明细">
+		<table id="cmx_datagrid" class="easyui-datagrid" data-options="pagination:true,rownumbers:true,fitColumns:true" >
+			<thead>
+				<tr>
+					<th data-options="field:'id',width:120,hidden:true">编号</th>
+					<th data-options="field:'aName',width:120,hidden:true">收款账号</th>
+					<th data-options="field:'ciName',width:'20%'">付款项目</th>
+					<th data-options="field:'initFee',width:'10%'">初始金额</th>
+					<th data-options="field:'startTime',width:'15%'">开始时间</th>
+					<th data-options="field:'endTime',width:'15%'">结束时间</th>
+					<th data-options="field:'money',width:'10%'">请款金额</th>
+					<th data-options="field:'remarks',width:'20%'">备注</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+
+<script type="text/javascript">
+	//状态匹配
+	function csFlag(val){
+		return "<span style='color:red'>"+val+"</span>";
+	}
+	//刷新
+	function cyc_fees_refresh() {
+		$('#cyc_fees_datagrid').datagrid('reload', {});
+	}
+	//条件查询
+	function cyc_fees_search() {
+		var sName = $('#cdpmc').combobox('getValue');
+		var aName = $('#cskzh').combobox('getValue');
+		var dayNum = $('#cfkpc').combobox('getValue');
+		var status = $('#czt').combobox('getValue');
+		var sTime = $('#cstime').datebox('getValue');
+		var eTime = $('#cetime').datebox('getValue');
+		var billNo = $('#cdh').textbox('getValue');
+		var data = {"sName":sName,"aName":aName,"dayNum":dayNum,"status":status,"sTime":sTime,"eTime":eTime,"billNo":billNo};
+		$('#cyc_fees_datagrid').datagrid('load', data);
+	}
+	//导出
+	function cyc_fees_export(){
+		$.messager.confirm("操作提示", "您确定要执行导出操作吗？", function(data){
+			if(data){
+				var sName = $('#cdpmc').combobox('getValue');
+				var aName = $('#cskzh').combobox('getValue');
+				var dayNum = $('#cfkpc').combobox('getValue');
+				var status = $('#czt').combobox('getValue');
+				var sTime = $('#cstime').datebox('getValue');
+				var eTime = $('#cetime').datebox('getValue');
+				var billNo = $('#cdh').textbox('getValue');
+				var str = "sName="+sName+"&aName="+aName+"&dayNum="+dayNum+"&status="+status+
+					"&sTime="+sTime+"&eTime="+eTime+"&billNo="+billNo;
+				location.href = "${base}/cycBills/exCycFeesCount?"+str;
+			}
+		});
+	}
+	//清空筛选条件
+	function cyc_fees_clean(){
+		$('#cyc_fees_datagrid').datagrid('load', {});
+		$('#cyc_fees_search').find('input').val('');
+	}
+	
+	//获取选择的店铺和费用项查询初始费用
+	$(function(){
+		$('#cfkpc').combobox({
+			onSelect : function(param) {
+				var url = '${base}/store/findStoresByDay?payDay=' + param.dayNums;
+				$('#cdpmc').combobox('clear'); //清空操作
+				$('#cdpmc').combobox('reload', url);
+			}
+		});
+	});
+	$('#cyc_fees_datagrid').datagrid({
+		onDblClickRow: function(rowIndex, rowData){
+			var billNo = rowData['billNo'];
+			$('#cmx_billno').html("请款单号："+billNo);
+			$('#cmxsName').textbox('setValue',rowData['sName']);
+			$('#cmxaName').textbox('setValue',rowData['aName']);
+			$('#cmxPayDate').datebox('setValue',rowData['payDate']);
+			$('#cmx_win').window('open');
+			$('#cmx_datagrid').datagrid({
+			    url:'${base}/cycDetails/list?billNo='+billNo+'&s='+new Date().getTime()
+			});
+		}
+	});
+	
+</script>

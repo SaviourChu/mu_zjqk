@@ -1,0 +1,165 @@
+<div id="ro_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">店铺名称:</label> 
+	<input class="easyui-combobox" id="rsName" name="rsName" 
+		data-options="url:'${base}/store/listStores',valueField:'sName',textField:'sName'">&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="ro_search();" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="ro_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="ro_panel" class="easyui-panel" title="租金和物管费配置" style="width:100%;height:80%;">
+	<div id="ro_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="ro_add()">添加</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="ro_update()">修改</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="ro_deletes()">删除</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-download',plain:true" onclick="ro_import()">导入</a>
+	</div>
+	<table id="ro_datagrid" class="easyui-datagrid" style="width:100%;"
+		data-options="toolbar:'#ro_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/rentOpt/list'" >
+		<thead>
+			<tr>
+				<th data-options="field:'ck',checkbox:true"></th>
+				<th data-options="field:'id',width:120,hidden:true">租金配置编号</th>
+				<th data-options="field:'sName',width:'20%'">店铺名称</th>
+				<th data-options="field:'startTime',width:'15%'">开始时间</th>
+				<th data-options="field:'endTime',width:'15%'">结束时间</th>
+				<th data-options="field:'initRent',width:'15%',formatter:gshje">保底租金</th>
+				<th data-options="field:'rentPoint',width:'15%'">提成租金比例</th>
+				<th data-options="field:'pmFee',width:'15%',formatter:gshje">物管费</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="ro_dlg" class="easyui-dialog" data-options="buttons:'#ro_buttons',closed:true">
+	<form id="ro_form" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div style="margin:20px 30px;text-align:center;">
+				<input type="hidden" id="rId" name="id"></input> 
+				<p><span class="lwr">店铺名称:</span><input class="easyui-combobox" id="rosName" name="sName" 
+					data-options="url:'${base}/store/listStores',valueField:'sName',textField:'sName'">&nbsp;&nbsp;
+				<p><span class="lwr">开始时间:</span><input class="easyui-datebox" name="startTime" data-options="editable:false"/><br>
+				<p><span class="lwr">结束时间:</span><input class="easyui-datebox" name="endTime" data-options="editable:false"/><br>
+				<p><span class="lwr">保底租金:</span><input class="easyui-numberbox" data-options="precision:2,min:0" name="initRent"/><br>
+				<p><span class="lwr">提成租金比例:</span><input class="easyui-textbox" type="text" name="rentPoint"/><br>
+				<p><span class="lwr">物管费:</span><input class="easyui-numberbox" data-options="precision:2,min:0" name="pmFee"/><br>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="ro_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="ro_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="ro_close()" style="width: 90px">取消</a>
+</div>
+<div id="ro_import_dlg" class="easyui-dialog" data-options="buttons:'#ro_import_buttons',closed:true">
+	<form id="ro_import_form" method="post" enctype="multipart/form-data">
+		<div>
+			<input type="file" name="execlFile" style="text-align:center;margin:0 auto;">
+		</div>
+	</form>
+</div>
+<div id="ro_import_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="import_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="import_close()" style="width: 90px">取消</a>
+</div>
+
+<style>
+	#ro_dlg{
+		width: 580px;
+		padding: 20px 20px;
+	}
+	.lwr{
+	    width: 77px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function ro_add() {
+		$('#rosName').combobox('clear'); //清空操作
+		$('#rosName').combobox('reload', '${base}/store/listStores?t='+new Date().getTime());
+		$('#ro_form').form('clear');
+		$('#ro_dlg').dialog('open').dialog('center').dialog('setTitle', '新增费用配置记录信息');
+	}
+	function ro_update() {
+		var row = $('#ro_datagrid').datagrid('getSelected');
+		if (row) {
+			$('#ro_dlg').dialog('open').dialog('center').dialog('setTitle', '修改费用配置记录信息');
+			$('#ro_form').form('load', row);
+			$("#rId").val(row.id);
+		} else {
+			promptMsg();
+		}
+	}
+	function ro_confirm() {
+		$.ajax({
+			type : "post",
+			url : "${base}/rentOpt/saveOrUpdate",
+			dataType : "json",
+			async : "false",
+			data : $("#ro_form").serialize(),
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#ro_dlg').dialog('close');
+					ro_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		})
+	}
+	function ro_deletes() {
+		batchDelete("ro_datagrid", "${base}/rentOpt/deletes", "ro_refresh();");
+	}
+	function ro_refresh() {
+		$('#ro_datagrid').datagrid('reload', {});
+	}
+	function ro_close() {
+		$('#ro_form').form('clear');
+		$('#ro_dlg').dialog('close');
+	}
+	function ro_search() {
+		var sName = $('#rsName').combobox('getValue');
+		var data = {"sName" : sName};
+		$('#ro_datagrid').datagrid('load', data);
+	}
+	function ro_cleanSearch(){
+		$('#ro_datagrid').datagrid('load', {});
+		$('#ro_search').find('input').val('');
+	}
+	function ro_import() {
+		$('#ro_import_form').form('clear');
+		$('#ro_import_dlg').dialog('open').dialog('center').dialog('setTitle', '租金物管配置信息导入');
+	}
+	function import_close() {
+		$('#ro_import_form').form('clear');
+		$('#ro_import_dlg').dialog('close');
+	}
+	function import_confirm() {
+		var formData = new FormData($("#ro_import_form")[0]); 
+		$.ajax({ 
+			url: '${base}/rentOpt/importRentOpts', 
+			type: 'POST', 
+			data: formData,
+			async: false, 
+			cache: false, 
+			contentType: false, 
+			processData: false, 
+			success: function(data) {
+			if (data.code == 12000) {
+				$('#ro_import_dlg').dialog('close');
+				ro_refresh();
+			} else {
+				$.messager.alert('提示',data.msg,'info');
+				$('#ro_import_dlg').dialog('close');
+			}
+			}, 
+			error: function(data) {
+				promptMsgParam(msg);
+				$('#ro_import_dlg').dialog('close');
+			} 
+		}); 
+	}
+</script>

@@ -1,0 +1,235 @@
+<div id="dif_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">费用项名称:</label> 
+	<select class="easyui-combobox" name="difName" id="difName" data-options="width:150">
+		<option value="" selected="selected"></option>
+		<#list diItems as di>
+			<option>${di.diName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;
+	<label class="label-top">店铺名称<span style="color:red">(初始化时必选)</span>:</label> 
+	<select class="easyui-combobox" name="difsName" id="difsName" data-options="width:150">
+		<option value="" selected="selected"></option>
+		<#list stores as s>
+			<option>${s.sName!}</option>
+	    </#list>
+	</select>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="dif_search()" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="dif_addDIF()" data-options="iconCls:'icon-add'">按店铺初始化一次性费用</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="dif_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="dif_panel" class="easyui-panel" title="一次性费用初始化" style="width:100%;height:80%;padding:3px;">
+	<div id="dif_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="dif_add()">添加</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="dif_update()">修改</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="dif_deletes()">删除</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-download',plain:true" onclick="dif_import()">导入</a>
+	</div>
+	<table id="dif_datagrid" class="easyui-datagrid" style="width:100%;height:100%;padding: 3px;"
+		data-options="toolbar:'#dif_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/dispInitfees/list'" >
+		<thead>
+			<tr>
+				<th data-options="field:'ck',checkbox:true"></th>
+				<th data-options="field:'id',width:120,hidden:true">费用项编号</th>
+				<th data-options="field:'sName',width:'20%'">店铺名称</th>
+				<th data-options="field:'diName',width:'20%'">一次性费用项名称</th>
+				<th data-options="field:'initFee',width:'20%'">初始费用</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="dif_dlg" class="easyui-dialog" data-options="buttons:'#dif_buttons',closed:true">
+	<form id="dif_form" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div style="margin:20px 30px;">
+				<input type="hidden" id="diIds" name="diIds"></input> 
+				<#list diItems as di>
+					<span class="lwdif">${di.diName!}</span><input class="easyui-textbox" type="text" name="${di.diId!}"/>&nbsp;&nbsp;
+				</#list>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="dif_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="dif_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="dif_close()" style="width: 90px">取消</a>
+</div>
+
+<div id="dif_dlg2" class="easyui-dialog" data-options="buttons:'#dif_buttons2',closed:true">
+	<form id="dif_form2" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div style="margin:55px 30px;text-align:center;">
+				<input type="hidden" id="difId" name="id"></input> 
+				<p><span class="lwdif2">费用项名称:</span><select class="easyui-combobox" name="diName" data-options="width:164">
+					<option value="" selected="selected"></option>
+					<#list diItems as di>
+						<option>${di.diName!}</option>
+				    </#list>
+				</select>
+				<p><span class="lwdif2">店铺名称:</span><select class="easyui-combobox" name="sName" data-options="width:164">
+					<option value="" selected="selected"></option>
+					<#list stores as s>
+						<option>${s.sName!}</option>
+				    </#list>
+				</select>
+				<p><span class="lwdif2">初始费用:</span><input class="easyui-numberbox" data-options="precision:2,min:0" name="initFee"/>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="dif_buttons2">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="dif_confirm2()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="dif_close2()" style="width: 90px">取消</a>
+</div>
+
+<div id="dif_import_dlg" class="easyui-dialog" data-options="buttons:'#dif_import_buttons',closed:true">
+	<form id="dif_import_form" method="post" enctype="multipart/form-data">
+		<div>
+			<input type="file" name="execlFile" style="text-align:center;margin:0 auto;">
+		</div>
+	</form>
+</div>
+<div id="dif_import_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="import_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="import_close()" style="width: 90px">取消</a>
+</div>
+
+
+<style>
+	#dif_dlg,#dif_dlg2{
+		width: 600px;
+		height: 300px;
+		padding: 20px 20px;
+	}
+	.lwdif,.lwdif2{
+	    width: 73px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function dif_addDIF() {
+		var difsName = $('#difsName').combobox('getValue');
+		if(difsName){
+			$('#dif_form').form('clear');
+			$('#dif_dlg').dialog('open').dialog('center').dialog('setTitle', '新增记录');
+		}
+	}
+	function dif_confirm() {
+		var difsName = $('#difsName').combobox('getValue');
+		var formData = $("#dif_form").serialize();
+		formData = "sName=" + difsName + "&" + formData.replace(/&/g,'@');
+		$.ajax({
+			type : "post",
+			url : "${base}/dispInitfees/saveOrUpdateDIF",
+			dataType : "json",
+			async : "false",
+			data : formData,
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#dif_dlg').dialog('close');
+					dif_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		});
+	}
+	function dif_close() {
+		$('#dif_form').form('clear');
+		$('#dif_dlg').dialog('close');
+	}
+	
+	function dif_add() {
+		$('#dif_form2').form('clear');
+		$('#dif_dlg2').dialog('open').dialog('center').dialog('setTitle', '新增记录');
+	}
+	function dif_update() {
+		var row = $('#dif_datagrid').datagrid('getSelected');
+		if (row) {
+			$('#dif_dlg2').dialog('open').dialog('center').dialog('setTitle', '修改记录');
+			$('#dif_form2').form('load', row);
+			$("#difId").val(row.id);
+		} else {
+			promptMsg();
+		}
+	}
+	function dif_confirm2() {
+		var formData = $("#dif_form2").serialize();
+		$.ajax({
+			type : "post",
+			url : "${base}/dispInitfees/saveOrUpdate",
+			dataType : "json",
+			async : "false",
+			data : formData,
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#dif_dlg2').dialog('close');
+					dif_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		});
+	}
+	function dif_deletes() {
+		batchDelete("dif_datagrid", "${base}/dispInitfees/deletes", "dif_refresh();");
+	}
+	function dif_refresh() {
+		$('#dif_datagrid').datagrid('reload', {});
+	}
+	function dif_close2() {
+		$('#dif_form2').form('clear');
+		$('#dif_dlg2').dialog('close');
+	}
+	function dif_search() {
+		var difName = $('#difName').combobox('getValue');
+		var difsName = $('#difsName').combobox('getValue');
+		var data = {"diName":difName,"sName":difsName};
+		$('#dif_datagrid').datagrid('load', data);
+	}
+	function dif_cleanSearch(){
+		$('#dif_datagrid').datagrid('load', {});
+		$('#dif_search').find('input').val('');
+	}
+	function dif_import() {
+		$('#dif_import_form').form('clear');
+		$('#dif_import_dlg').dialog('open').dialog('center').dialog('setTitle', '一次性初始化费用导入');
+	}
+	function import_close() {
+		$('#dif_import_form').form('clear');
+		$('#dif_import_dlg').dialog('close');
+	}
+	function import_confirm() {
+		var formData = new FormData($("#dif_import_form")[0]); 
+		$.ajax({ 
+			url: '${base}/dispInitfees/importDispInitfees', 
+			type: 'POST', 
+			data: formData,
+			async: false, 
+			cache: false, 
+			contentType: false, 
+			processData: false, 
+			success: function(data) {
+			if (data.code == 12000) {
+				$('#dif_import_dlg').dialog('close');
+				dif_refresh();
+			} else {
+				$.messager.alert('提示',data.msg,'info');
+				$('#dif_import_dlg').dialog('close');
+			}
+			}, 
+			error: function(data) {
+				promptMsgParam(msg);
+				$('#dif_import_dlg').dialog('close');
+			} 
+		}); 
+	}
+</script>

@@ -1,0 +1,197 @@
+<div id="cbf_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">店铺名称:</label>
+	<input class="easyui-combobox" id="cbfsName" data-options="url:'${base}/store/listStores',valueField:'sName',textField:'sName'">&nbsp;&nbsp;
+	<label class="label-top">收款账户:</label>
+	<input class="easyui-combobox" id="cbfaName" data-options="url:'${base}/account/listAccounts',valueField:'aName',textField:'aName'">&nbsp;&nbsp;
+	<label class="label-top">付款账户:</label>
+	<input class="easyui-combobox" id="cbfpName" data-options="url:'${base}/payAccount/listPayAccounts',valueField:'paName',textField:'paName'">&nbsp;&nbsp;
+	<label class="label-top">单号:</label>
+	<input class="easyui-textbox"type="text" id="cbfBillNo" name="cbfBillNo" data-options="width:150"/><br>
+	<label class="label-top">制单日期:</label>
+	<input class="easyui-datebox" id="cbfsTime" name="cbfsTime" data-options="width:100,editable:false"/>&nbsp;&nbsp;~&nbsp;
+	<input class="easyui-datebox" id="cbfeTime" name="cbfeTime" data-options="width:100,editable:false"/>&nbsp;&nbsp;
+	<label class="label-top">状态:</label> 
+	<select class="easyui-combobox" id="cbfStatus" name="cbfStatus" data-options="width:120,panelHeight:'auto'">
+		<option value="" selected="selected"></option>
+		<option value="3">待支付</option>
+		<option value="4">已支付未开票</option>
+		<option value="6">部分发票</option>
+		<option value="7">发票已全</option>
+	</select>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="cbf_search()" data-options="iconCls:'icon-search'">查询</a>
+	<a href="#" class="easyui-linkbutton" onclick="cbf_cleanSearch();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="cbf_panel" class="easyui-panel" title="周期性请款记录" style="width:100%;height:80%;">
+	<div id="cbf_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-reload',plain:true" onclick="cbf_refresh()">刷新</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="cbf_pay()">确认支付</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="cbf_update()">修改支付信息</a>
+	</div>
+	<table id="cbf_datagrid" class="easyui-datagrid" style="width:100%;" 
+		data-options="toolbar:'#cbf_toolbar',pagination:true,rownumbers:true,fitColumns:true,fit:true,url:'${base}/cycBills/listFinancial'" >
+		<thead>
+			<tr>
+				<th data-options="field:'ck',checkbox:true"></th>
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'createTime',width:'7%'">制单日期</th>
+				<th data-options="field:'billNo',width:'10%'">单号</th>
+				<th data-options="field:'brand',width:'6%'">品牌</th>
+				<th data-options="field:'sName',width:'10%'">店铺名称</th>
+				<th data-options="field:'contractSubject',width:'10%'">合同抬头</th>
+				<th data-options="field:'berthNo',width:'8%'">铺位号</th>
+				<th data-options="field:'aName',width:'6%'">收款账户</th>
+				<th data-options="field:'account',width:'10%'">收款账号</th>
+				<th data-options="field:'bank',width:'6%'">开户行</th>
+				<th data-options="field:'payDate',width:'8%'">申请支付日期</th>
+				<th data-options="field:'totalMoney',width:'6%',formatter:gshje">合计金额</th>
+				<th data-options="field:'status',width:'6%',formatter:cbfFlag">状态</th>
+				<th data-options="field:'paName',width:'6%'">付款账户</th>
+				<th data-options="field:'actualDate',width:'8%'">实付日期</th>
+				<th data-options="field:'actualMoney',width:'6%',formatter:gshje">实付金额</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="cbf_dlg" class="easyui-dialog" data-options="buttons:'#cbf_buttons',closed:true" style="width: 550px;height:300px;">
+	<form id="cbf_form" method="post" enctype="multipart/form-data">
+		<div class="p-dlg-div">
+			<div style="margin: 60px 30px;text-align:center;">
+				<input type="hidden" id="cbfId" name="id"></input>
+				<p><span class="lwcbf">付款账户:</span><input class="easyui-combobox" name="paName" data-options="url:'${base}/payAccount/listPayAccounts',valueField:'paName',textField:'paName'">
+				<p><span class="lwcbf">实付日期:</span><input class="easyui-datebox" name="actualDate"/><br>
+				<p><span class="lwcbf">实付金额:</span><input class="easyui-numberbox" name="actualMoney" data-options="precision:2,min:0"/>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="cbf_buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok',plain:true" onclick="cbf_confirm()" style="width: 90px">确定</a> 
+	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="cbf_close()" style="width: 90px">取消</a>
+</div>
+
+<div id="cbdf_win" class="easyui-window" title="<span id='cbdf_billno' style='color:red;'></span>" 
+	data-options="modal:true,closed:true,minimizable:false" style="width:900px;top:60px;height:500px;">
+	<div id="cbdf_search" class="easyui-panel" title="请款单信息" style="padding:5px;">
+		<div>
+			<label class="label-top">店铺名称:</label>
+			<input class="easyui-textbox" type="text" id="cbdfsName" name="cbdfsName" data-options="editable:false">&nbsp;&nbsp;
+			<label class="label-top">收款账户:</label> 
+			<input class="easyui-textbox" type="text" id="cbdfaName" name="cbdfaName" data-options="editable:false">&nbsp;&nbsp;
+			<label class="label-top">申请支付日期:</label>
+			<input class="easyui-datebox" id="cbdfPayDate" name="cbdfPayDate" data-options="editable:false"/>
+		</div>
+	</div>
+	<div id="cbdf_toolbar">
+		<span id="cbdf_total"></span>
+	</div>
+	<div id="cbdf_panel" class="easyui-panel" title="周期性请款明细">
+		<table id="cbdf_datagrid" class="easyui-datagrid" data-options="toolbar:'#cbdf_toolbar',pagination:true,rownumbers:true,fitColumns:true" >
+			<thead>
+				<tr>
+					<th data-options="field:'id',width:120,hidden:true">编号</th>
+					<th data-options="field:'ciName',width:'20%'">付款项目</th>
+					<th data-options="field:'initFee',width:'10%'">初始金额</th>
+					<th data-options="field:'startTime',width:'15%'">开始时间</th>
+					<th data-options="field:'endTime',width:'15%'">结束时间</th>
+					<th data-options="field:'money',width:'10%'">请款金额</th>
+					<th data-options="field:'remarks',width:'20%'">备注</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<style>
+	.lwcbf {
+	    width: 80px;
+	    display: inline-block;
+	}
+</style>
+
+<script type="text/javascript">
+	function cbfFlag(val){
+		return "<span style='color:red'>"+val+"</span>";
+	}
+	function cbf_refresh() {
+		$('#cbf_datagrid').datagrid('reload', {});
+	}
+	function cbf_search() {
+		var sName = $('#cbfsName').combobox('getValue');
+		var aName = $('#cbfaName').combobox('getValue');
+		var paName = $('#cbfpName').combobox('getValue');
+		var status = $('#cbfStatus').combobox('getValue');
+		var sTime = $('#cbfsTime').datebox('getValue');
+		var eTime = $('#cbfeTime').datebox('getValue');
+		var billNo = $('#cbfBillNo').textbox('getValue');
+		var data = {"sName":sName,"aName":aName,"status":status,"paName":paName,"sTime":sTime,"eTime":eTime,"billNo":billNo};
+		$('#cbf_datagrid').datagrid('load', data);
+	}
+	function cbf_cleanSearch(){
+		$('#cbf_datagrid').datagrid('load', {});
+		$('#cbf_search').find('input').val('');
+	}
+	function cbf_pay(){
+		var row = $('#cbf_datagrid').datagrid('getSelected');
+		if (row) {
+			if(row.status == '待支付' || row.status == '已支付未开票'){
+				$('#cbf_dlg').dialog('open').dialog('center').dialog('setTitle', '添加或修改支付信息');
+				$('#cbf_form').form('load', row);
+				$("#cbfId").val(row.id);
+			}
+		}
+	}
+	function cbf_update() {
+		var row = $('#cbf_datagrid').datagrid('getSelected');
+		if (row) {
+			$('#cbf_dlg').dialog('open').dialog('center').dialog('setTitle', '添加或修改支付信息');
+			$('#cbf_form').form('load', row);
+			$("#cbfId").val(row.id);
+		} else {
+			promptMsg();
+		}
+	}
+	function cbf_confirm() {
+		$.ajax({
+			type : "post",
+			url : "${base}/cycBills/savePaymentInfo",
+			dataType : "json",
+			async : "false",
+			data : $("#cbf_form").serialize(),
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#cbf_dlg').dialog('close');
+					cbf_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam(msg);
+			}
+		})
+	}
+	function cbf_close() {
+		$('#cbf_form').form('clear');
+		$('#cbf_dlg').dialog('close');
+	}
+	$('#cbf_datagrid').datagrid({
+		onDblClickRow: function(rowIndex, rowData){
+			var billNo = rowData['billNo'];
+			$('#cbdf_billno').html("请款单号："+billNo);
+			$('#cbdfsName').textbox('setValue',rowData['sName']);
+			$('#cbdfaName').textbox('setValue',rowData['aName']);
+			$('#cbdfPayDate').datebox('setValue',rowData['payDate']);
+			$('#cbdf_win').window('open');
+			var curTime = new Date().getTime();
+			$('#cbdf_datagrid').datagrid({
+			    url:'${base}/cycDetails/list?billNo='+billNo
+			});
+			$.post("${base}/cycDetails/totalAmount",{"billNo":billNo,"curTime":curTime}, function(data){
+				var strTotal = "<span style='color:red;'>&nbsp;&nbsp;&nbsp;&nbsp;您本次查询的该请款单金额总计为："+data+" 元</span>";
+				$('#cbdf_total').html(strTotal);
+			});
+		}
+	});
+</script>

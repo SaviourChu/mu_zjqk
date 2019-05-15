@@ -1,0 +1,119 @@
+<style type="text/css">
+	.sysorg_fitem span {
+		display:-moz-inline-box;
+		display:inline-block;
+		text-align:right;
+		width:100px; 
+	}
+</style>
+<div class="easyui-panel" title="部门列表" style="width:100%;height:100%;padding:3px;">
+	<div style="padding:2px 2px;">
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-reload" onclick="sysorg_refresh()" plain="true" >刷新</a>
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-add" onclick="sysorg_add()" plain="true" >添加部门</a>
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-edit" onclick="sysorg_update()" plain="true" >修改部门</a>
+	   <a href="#" class="easyui-linkbutton" iconCls="icon-remove" onclick="sysorg_del()" plain="true" >删除部门</a>
+	   </div>
+	<table id="org_grid" url="${base}/security/org/orgList" class="easyui-datagrid" style="width:100%;height:90%"
+		data-options="pageSize:10,fitColumns:true,pagination:true,singleSelect:true,rownumbers:true">
+	    <thead>
+	        <tr>
+	            <th data-options="field:'id',width:'5%',hidden:'true'">序号</th>
+	            <th data-options="field:'name',width:'40%'">部门名称</th>
+	            <th data-options="field:'description',width:'60%'">部门描述</th>
+	        </tr>
+	    </thead>
+	</table>
+	<div id="sysorg_add" class="easyui-dialog" title="添加新菜单" closed="true" buttons="#sysorg_button" style="width:550px;height:280px;padding:10px 50px">
+	    <form id="sysorg_form" style="margin-top: 40px;" method="post" enctype="multipart/form-data">
+	        <div class="sysorg_fitem">
+	            <span>部门名称:</span> 
+	            <input class="easyui-textbox" type="text" name="name"  style="width: 200px;"/><br>
+	            <span>部门描述:</span>
+	            <input class="easyui-textbox" type="text" name="description" style="width: 200px;" data-options="height:60,multiline:true"/><br>
+	            <input type="hidden" id="sysorg_key" name="id" ></input>
+	        </div>
+	    </form>
+	</div>
+	<div id="sysorg_button">
+	    <a href="#" plain="true" class="easyui-linkbutton" iconCls="icon-ok" onclick="sysorg_confirm()" style="width:90px">确定</a>
+	    <a href="#" plain="true" class="easyui-linkbutton" iconCls="icon-cancel" onclick="sysorg_cancel()" style="width:90px">取消</a>
+	</div>
+</div>
+
+<script type="text/javascript">
+	var opt_name;
+	function sysorg_add(){
+		$('#sysorg_form').form('clear');
+		$('#sysorg_add').dialog('open').dialog('center').dialog('setTitle','添加部门');
+	}
+	function sysorg_update(){
+		var row = $('#org_grid').datagrid('getSelected');
+		if(row){
+			$('#sysorg_add').dialog('open').dialog('center').dialog('setTitle','修改部门');
+			$('#sysorg_form').form('load',row);
+			$("#sysorg_key").val(row.id);
+		}else{
+			promptMsg();
+		}
+	}
+	function sysorg_del(){
+		var row = $('#org_grid').datagrid('getSelected');
+		if(row){
+			$(function () {
+		        $.messager.confirm("操作提示", "您确定要删除该部门吗？", function (data) {
+		            if (data) {
+		            	$.ajax({
+		            		type: "POST",
+		                    url: "${base}/security/org/delete",
+		                    dataType: "json",                    
+		                    async: false,
+		                    data:{id: row.id},
+		                    success: function(result){
+		                    	if(result.code=="12000"){
+		                    		sysorg_refresh();
+		                    	} else {
+		        					promptMsgParam(result.msg);
+		        				}
+		                    },
+		                    error: function(obj, msg, e){
+		                    	promptMsgParam(msg);
+		                    }              
+		                });
+		            }
+		            else {
+		                return;
+		            }
+		        });
+		    });
+		}else{
+			promptMsg();
+		}
+	}
+	function sysorg_confirm(){
+		$.ajax({
+			type:"post",
+			url:"${base}/security/org/saveOrUpdate",
+			dataType:"json",
+			async:"false",
+			data:$("#sysorg_form").serialize(),
+			success:function(result){
+				if(result.code==12000){
+					 $('#sysorg_add').dialog('close');
+					 sysorg_refresh();
+				}else{
+					alert("添加失败！");
+				}
+			},
+			error:function(obj, msg, e){
+				alert( "请求失败，请重试！");
+			}
+		})
+	}
+	function sysorg_refresh(){
+		$('#org_grid').datagrid('reload',{});
+	}
+	function sysorg_cancel(){
+		$('#sysorg_form').form('clear');
+		$('#sysorg_add').dialog('close');
+	} 
+</script>

@@ -1,0 +1,136 @@
+<style type="text/css">
+	.sysuser_fitem span {
+		display: -moz-inline-box;
+		display: inline-block;
+		text-align: right;
+		width: 100px;
+	}
+</style>
+<div class="easyui-panel" title="用户列表" style="width: 100%; height: 100%; padding: 3px;">
+	<div style="padding: 2px 2px;">
+		<a href="#" class="easyui-linkbutton" iconCls="icon-reload" onclick="sysuser_refresh()" plain="true">刷新</a>
+		<a href="#" class="easyui-linkbutton" iconCls="icon-add" onclick="sysuser_add()" plain="true">添加用户</a>
+		<a href="#" class="easyui-linkbutton" iconCls="icon-edit" onclick="sysuser_update()" plain="true">修改用户</a>
+		<a href="#" class="easyui-linkbutton" iconCls="icon-remove" onclick="sysuser_delete()" plain="true">删除用户</a>
+	</div>
+	<table id="user_grid" url="${base}/security/user/userlist" class="easyui-datagrid" style="width: 100%; height: 90%"
+		data-options="pageSize:30,fitColumns:true,pagination:true,singleSelect:true,rownumbers:true">
+		<thead>
+			<tr>
+				<th data-options="field:'id',width:'5%',hidden:'true'">序号</th>
+				<th data-options="field:'fullname',width:'12%'">姓名</th>
+				<th data-options="field:'username',width:'12%'">登录名</th>
+				<th data-options="field:'phone',width:'12%'">联系方式</th>
+				<th data-options="field:'orgName',width:'12%'">所属部门</th>
+				<th data-options="field:'roleName',width:'15%'">角色名称</th>
+				<th data-options="field:'enabled',width:'10%',formatter:isEnabled">是否可用</th>
+				<th data-options="field:'createDate',width:'8%'">创建日期</th>
+			</tr>
+		</thead>
+	</table>
+	<div id="sysuser_add" class="easyui-dialog" title="添加角色" closed="true" buttons="#sysuser_button" style="width: 550px; height: 280px; padding: 10px 50px">
+		<form id="sysuser_form" style="margin-top: 20px;" method="post" enctype="multipart/form-data">
+			<div class="sysuser_fitem">
+				<input type="hidden" id="sysuser_key" name="id"/> 
+				<span>姓名:</span> <input class="easyui-textbox" type="text" name="fullname" style="width: 200px;"/><br> 
+				<span>登录名:</span> <input class="easyui-textbox" type="text" name="username" style="width: 200px;"/><br> 
+				<span>联系方式:</span> <input class="easyui-textbox" type="text" name="phone" style="width: 200px;"/><br> 
+				<span>密码:</span> <input class="easyui-textbox" type="password" name="password" style="width: 200px;"/><br> 
+				<span>是否可用:</span>
+				<select class="easyui-combobox" id="enabled" name="enabled" data-options="width:200,editable:false,panelHeight:'auto'">
+					<option value="1" selected="selected">可用</option>
+					<option value="2">不可用</option>
+				</select><br> 
+				<span>部门:</span>
+				<select class="easyui-combobox" name="orgId" data-options="width:200,editable:false,panelHeight:'auto'">
+					<#list orgs as o>
+						<option value="${o.id!}">${o.name!}</option> 
+					</#list>
+				</select><br>
+				<span>角色权限:</span>
+				<select class="easyui-combobox" name="roleId" data-options="width:200,editable:false,panelHeight:'auto'">
+					<#list roles as r>
+						<option value="${r.id!}">${r.name!}</option> 
+					</#list>
+				</select><br>
+			</div>
+		</form>
+	</div>
+	<div id="sysuser_button">
+		<a href="#" plain="true" class="easyui-linkbutton" iconCls="icon-ok" onclick="sysuser_confirm()" style="width: 90px">确定</a> 
+		<a href="#" plain="true" class="easyui-linkbutton" iconCls="icon-cancel" onclick="sysuser_cancel()" style="width: 90px">取消</a>
+	</div>
+</div>
+
+<script type="text/javascript">
+	function isEnabled(val){
+		return val == 1 ? "<span style='color:green;'>可用</span>" : "<span style='color:red;'>不可用</span>";
+	}
+	var opt_name;
+	function sysuser_add() {
+		$('#sysuser_form').form('clear');
+		var data = $('#enabled').combobox('getData');
+		 $('#enabled').combobox('select',data[0].value);
+		$('#sysuser_add').dialog('open').dialog('center').dialog('setTitle', '添加用户');
+	}
+	function sysuser_update() {
+		var row = $('#user_grid').datagrid('getSelected');
+		if (row) {
+			$('#sysuser_add').dialog('open').dialog('center').dialog('setTitle', '修改用户');
+			$('#sysuser_form').form('load', row);
+			console.log("*****************")
+			console.log(row)
+			$("#sysuser_key").val(row.id);
+			$('#media_index_addtostar').dialog('open').dialog('center');
+		} else {
+			promptMsg();
+		}
+	}
+	function sysuser_confirm() {
+		$.ajax({
+			type : "post",
+			url : "${base}/security/user/saveOrUpdate",
+			dataType : "json",
+			async : "false",
+			data : $("#sysuser_form").serialize(),
+			success : function(result) {
+				if (result.code == 12000) {
+					$('#sysuser_add').dialog('close');
+					sysuser_refresh();
+				} else {
+					promptMsgParam(result.msg);
+				}
+			},
+			error : function(obj, msg, e) {
+				promptMsgParam("请求失败！");
+				promptMsgParam(msg);
+			}
+		})
+	}
+	function sysuser_delete() {
+		var row = $('#user_grid').datagrid('getSelected');
+		if(row){
+			$(function () {
+		        $.messager.confirm("操作提示", "您确定要删除该用户吗？", function (data) {
+		            if (data) {
+		            	$.post("${base}/security/user/delete", {"id":row.id}, function() {
+							sysuser_refresh();
+						}, "json");
+		            }
+		            else {
+		                return;
+		            }
+		        });
+		    });
+		}else{
+			promptMsg();
+		}
+	}
+	function sysuser_refresh() {
+		$('#user_grid').datagrid('reload', {});
+	}
+	function sysuser_cancel() {
+		$('#sysuser_form').form('clear');
+		$('#sysuser_add').dialog('close');
+	}
+</script>

@@ -1,0 +1,83 @@
+<div id="fmt_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">店铺名称:</label> 
+	<input class="easyui-combobox" id="fmtsName" data-options="url:'${base}/store/listStores',valueField:'sName',textField:'sName'"/>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="fmt_search()" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="fmt_clean();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="fmt_panel" class="easyui-panel" title="可回收资金管理表" style="width:100%;height:80%;">
+	<div id="fmt_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-upload',plain:true" onclick="fmt_export()">导出</a>
+	</div>
+	<table id="fmt_datagrid" class="easyui-datagrid" style="width:100%;"
+		data-options="toolbar:'#fmt_toolbar',pagination:true,fitColumns:true,rownumbers:true,url:'${base}/dispBills/fundMgt',singleSelect:true" >
+		<thead>
+			<tr>
+				<th data-options="field:'id',width:180,hidden:true">编号</th>
+				<th data-options="field:'sName',width:'15%'">店铺名称</th>
+				<th data-options="field:'openingDate',width:'8%'">开业日期</th>
+				<th data-options="field:'closeDate',width:'8%'">撤铺日期</th>
+				<th data-options="field:'zlbzj',width:'8%'">租赁保证金</th>
+				<th data-options="field:'zxyj',width:'8%'">装修押金</th>
+				<th data-options="field:'ggsyyj',width:'8%'">公共事业押金</th>
+				<th data-options="field:'sdbzj',width:'8%'">水电保证金</th>
+				<th data-options="field:'posyj',width:'8%'">POS押金</th>
+				<th data-options="field:'crzyj',width:'8%'">出入证押金</th>
+				<th data-options="field:'spzlbzj',width:'10%'">商品质量保证金</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<div id="kshmx_win" class="easyui-window"  title="可回收资金明细" data-options="modal:true,closed:true,minimizable:false" style="width:600px;top:120px;height:350px;">
+	<table id="kshmx_datagrid" class="easyui-datagrid" data-options="pagination:true,rownumbers:true,fitColumns:true" >
+		<thead>
+			<tr>
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'billNo',width:'20%'">单号</th>
+				<th data-options="field:'diName',width:'20%'">付款项目</th>
+				<th data-options="field:'money',width:'15%'">请款金额</th>
+				<th data-options="field:'remarks',width:'20%'">备注</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<script type="text/javascript">
+	function fmt_refresh() {
+		$('#fmt_datagrid').datagrid('reload', {});
+	}
+	//条件查询
+	function fmt_search() {
+		var sName = $('#fmtsName').combobox('getValue');
+		var data = {"sName":sName};
+		$('#fmt_datagrid').datagrid('load', data);
+	}
+	//导出
+	function fmt_export(){
+		$.messager.confirm("操作提示", "您确定要执行导出操作吗？", function(data){
+			if(data){
+				var sName = $('#fmtsName').combobox('getValue');
+				var str = "sName="+sName;
+				location.href = "${base}/dispBills/exFundMgt?"+str;
+			}
+		});
+	}
+	//清空筛选条件
+	function fmt_clean(){
+		$('#fmt_datagrid').datagrid('load', {});
+		$('#fmt_search').find('input').val('');
+	}
+	
+	$('#fmt_datagrid').datagrid({
+		onDblClickRow: function(rowIndex, rowData){
+			var sName = rowData['sName'];
+			if(sName){
+				$('#kshmx_win').window('open');
+				$('#kshmx_datagrid').datagrid({
+				    url:'${base}/dispDetails/fundMgtmx?sName='+sName
+				});
+			}
+		}
+	});
+</script>

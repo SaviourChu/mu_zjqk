@@ -1,0 +1,95 @@
+<script type="text/javascript" src="${base}/js/jquery.edatagrid.js"></script>
+
+<div id="dispDetails_search" class="easyui-panel" title="查询条件" data-options="iconCls:'icon-search'" style="width:100%;height:16%;padding:8px;">
+	<label class="label-top">店铺名称:</label> 
+	<input class="easyui-combobox" id="dispdpmc" name="dispdpmc" data-options="url:'${base}/store/listStores',valueField:'sName',textField:'sName'">&nbsp;&nbsp;
+	<label class="label-top">收款账户:</label>
+	<input class="easyui-combobox" id="dispskzh" data-options="url:'${base}/account/listAccounts',valueField:'aName',textField:'aName'">&nbsp;&nbsp;
+	<label class="label-top">付款项目:</label>
+	<input class="easyui-combobox" id="dispfkxm" data-options="url:'${base}/dispItems/listDispItems',valueField:'diName',textField:'diName'">&nbsp;&nbsp;
+	<label class="label-top">单号:</label>
+	<input class="easyui-textbox"type="text" id="dispdh" name="dispdh" data-options="width:150"/><br>
+	<label class="label-top">制单日期:</label>
+	<input class="easyui-datebox" id="dispstime" name="dispstime" data-options="width:100,editable:false"/>&nbsp;&nbsp;~&nbsp;
+	<input class="easyui-datebox" id="dispetime" name="dispetime" data-options="width:100,editable:false"/>&nbsp;&nbsp;
+	<label class="label-top">状态:</label> 
+	<select class="easyui-combobox" id="dispzt" name="dispzt" data-options="width:140,panelHeight:'auto'">
+		<option value="" selected="selected"></option>
+		<option value="1">未提交</option>
+		<option value="2">待审批</option>
+		<option value="3">待支付</option>
+		<option value="5">审批失败</option>
+		<option value="4">已支付未开票</option>
+		<option value="6">部分发票</option>
+		<option value="7">发票已全</option>
+	</select>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="dispDetails_search();" data-options="iconCls:'icon-search'">查询</a>&nbsp;&nbsp;
+	<a href="#" class="easyui-linkbutton" onclick="dispDetails_clean();" data-options="iconCls:'icon-undo'">清空条件</a>
+</div>
+
+<div id="dispDetails_panel" class="easyui-panel" title="一次性请款明细" style="width:100%;height:80%;">
+	<div id="dispDetails_toolbar">
+		<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-upload',plain:true" onclick="dispDetails_export()">导出</a>
+	</div>
+	<table id="dispDetails_datagrid" class="easyui-datagrid" style="width:100%;" 
+		data-options="toolbar:'#dispDetails_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/dispBills/dispDetailsData'" >
+		<thead>
+			<tr>
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'createTime',width:'10%'">制单日期</th>
+				<th data-options="field:'billNo',width:'15%'">请款单号</th>
+				<th data-options="field:'sName',width:'15%'">店铺名称</th>
+				<th data-options="field:'diName',width:'15%'">付款项目</th>
+				<th data-options="field:'money',width:'8%',formatter:gshje">请款金额</th>
+				<th data-options="field:'actualDate',width:'10%'">实际支付日期</th>
+				<th data-options="field:'status',width:'10%',formatter:dispFlag">状态</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+<script type="text/javascript">
+	//状态匹配
+	function dispFlag(val){
+		return "<span style='color:red'>"+val+"</span>";
+	}
+	//刷新
+	function dispDetails_refresh() {
+		$('#dispDetails_datagrid').datagrid('reload', {});
+	}
+	//条件查询
+	function dispDetails_search() {
+		var sName = $('#dispdpmc').combobox('getValue');
+		var aName = $('#dispskzh').combobox('getValue');
+		var diName = $('#dispfkxm').combobox('getValue');
+		var status = $('#dispzt').combobox('getValue');
+		var sTime = $('#dispstime').datebox('getValue');
+		var eTime = $('#dispetime').datebox('getValue');
+		var billNo = $('#dispdh').textbox('getValue');
+		var data = {"sName":sName,"aName":aName,"diName":diName,"status":status,"sTime":sTime,"eTime":eTime,"billNo":billNo};
+		$('#dispDetails_datagrid').datagrid('load', data);
+	}
+	//导出
+	function dispDetails_export(){
+		$.messager.confirm("操作提示", "您确定要执行导出操作吗？", function(data){
+			if(data){
+				var sName = $('#dispdpmc').combobox('getValue');
+				var aName = $('#dispskzh').combobox('getValue');
+				var diName = $('#dispfkxm').combobox('getValue');
+				var status = $('#dispzt').combobox('getValue');
+				var sTime = $('#dispstime').datebox('getValue');
+				var eTime = $('#dispetime').datebox('getValue');
+				var billNo = $('#dispdh').textbox('getValue');
+				var str = "sName="+sName+"&aName="+aName+"&diName="+diName+"&status="+status+
+					"&sTime="+sTime+"&eTime="+eTime+"&billNo="+billNo;
+				location.href = "${base}/dispBills/exDispDetails?"+str;
+			}
+		});
+	}
+	
+	//清空筛选条件
+	function dispDetails_clean(){
+		$('#dispDetails_datagrid').datagrid('load', {});
+		$('#dispDetails_search').find('input').val('');
+	}
+</script>
