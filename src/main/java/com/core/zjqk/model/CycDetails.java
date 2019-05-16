@@ -307,10 +307,8 @@ public class CycDetails extends BaseCycDetails<CycDetails> {
 	}
 	
 	public Double getFkxMoney(Controller c) {
-		Integer fkxId = c.getParaToInt("fkxId");
-		String billNo = c.getPara("billNo");
-		String sql = "SELECT money FROM cyc_details WHERE type='"+ShiroUtils.getClassify()+"' AND c_id=? AND bill_no=? ";
-		Double result = this.findFirst(sql, fkxId, billNo).getDouble("money");
+		String sql = "SELECT money FROM cyc_details WHERE id=? ";
+		Double result = this.findFirst(sql, c.getParaToInt("fkxId")).getDouble("money");
 		return result != null ? result : 0.0;
 	}
 	

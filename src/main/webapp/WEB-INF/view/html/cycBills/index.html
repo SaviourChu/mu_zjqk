@@ -163,13 +163,12 @@
 	<div id="cbi_search" class="easyui-panel" title="录入发票信息" data-options="cache:false" style="padding:5px;">
 		<div>
 			<label class="label-top">付款项:</label><input class="easyui-combobox" id="fkxs" name="fkxs" 
-				data-options="valueField:'id',textField:'name',panelHeight:'auto',width:166">&nbsp;&nbsp;
-			<input class="easyui-textbox" type="text" id="fkxje" name="fkxje" data-options="editable:false,width:80"/>&nbsp;&nbsp;
+				data-options="valueField:'id',textField:'name',panelHeight:'auto',editable:false,width:500"><br>
 			<label class="label-top">发票编号:</label><input class="easyui-textbox" type="text" id="t1" name="invoiceNo"/>&nbsp;&nbsp;
-			<label class="label-top">发票金额:</label><input class="easyui-numberbox" 
-				data-options="precision:2,min:0" id="t2" name="money"/><br>
 			<label class="label-top">发票抬头:</label><input class="easyui-combobox" id="t3" name="invoiceTitle" 
-				data-options="url:'${base}/invoiceTitle/InvoiceTitlesInfo',valueField:'itName',textField:'itName',width:166">&nbsp;&nbsp;
+				data-options="url:'${base}/invoiceTitle/InvoiceTitlesInfo',valueField:'itName',textField:'itName',width:280"><br>
+			<label class="label-top">发票金额:</label><input class="easyui-numberbox" 
+				data-options="precision:2,min:0" id="t2" name="money"/>&nbsp;&nbsp;
 			<label class="label-top">开票日期:</label><input class="easyui-datebox" id="t4" name="createDate" 
 				data-options="editable:false"/>&nbsp;&nbsp;
 			<a href="#" class="easyui-linkbutton" onclick="cbi_add();" data-options="iconCls:'icon-add'">添加</a>&nbsp;&nbsp;
@@ -328,10 +327,9 @@
 		var dpmc = $('#cdsName').combobox('getValue');
 		var skzh = $('#cdaName').combobox('getValue');
 		var zfrq = $('#cdPayDate').datebox('getValue');
+		var data = {"rowId":rowId,"dyym":dyym,"danhao":danhao,"dpmc":dpmc,"skzh":skzh,"zfrq":zfrq};
 		if(rowId && danhao && dpmc && skzh && zfrq){
-			$.post("${base}/cycDetails/editBillInfo",
-					{"rowId":rowId,"dyym":dyym,"danhao":danhao,"dpmc":dpmc,"skzh":skzh,"zfrq":zfrq},
-					function(result){
+			$.post("${base}/cycDetails/editBillInfo",data,function(result){
 				if (result.code != 12000) {
 					promptMsgParam(result.msg);
 				}else{
@@ -418,15 +416,15 @@
 			promptMsgParam('请将必填项补充完整！');
 		}
 	}
-	
+	var tt;
 	//获取选择的店铺和费用项查询初始费用
 	$(function(){
 		$('#fkxs').combobox({
 	          onChange: function (i, o) {
-	          	var fkxId = i;
-	    		if(fkxId && tt){
-	    			$.post("${base}/cycDetails/getFkxMoney",{"fkxId":fkxId,"billNo":tt},function(data){
-	    				$('#fkxje').textbox("setValue",data);
+	    		if(i){
+	    			$.post("${base}/cycDetails/getFkxMoney",{"fkxId":i},function(data){
+	    				$('#t2').numberbox("setValue",data);
+	    				tt = data;
 	    			},"json");
 	    		}
 	          }  
@@ -476,15 +474,12 @@
 		$('#cb_datagrid').edatagrid({});
 	});
 
-	var tt;
-	
 	//显示发票页面
 	function cb_invoice(){
 		var row = $('#cb_datagrid').datagrid('getSelected');
 		var billNo = $('#cbi_billno').html().replace(/请款单号：/,'');
 		if (row) {
 			var billNo = row.billNo;
-			tt = billNo;
 			$('#fkxs').combobox('clear');
 			$('#fkxs').combobox('reload', "${base}/cycItems/getCiNames?billNo=" + billNo);
 			if(row.status == '已支付未开票' || row.status == '部分发票' || row.status == '发票已全'){
@@ -505,14 +500,17 @@
 	}
 	//添加发票记录
 	function cbi_add(){
-		var fkx = $('#fkxs').combobox('getValue');
-		var fkxje = $('#fkxje').combobox('getValue');
+		var fkxId = $('#fkxs').combobox('getValue');
 		var invoiceNo = $('#t1').textbox('getValue');
 		var money = $('#t2').numberbox('getValue');
+		if(money > tt){
+			promptMsgParam("发票金额不能大于付款项目金额！");
+			return ;
+		}
 		var invoiceTitle = $('#t3').combobox('getValue');
 		var createDate = $('#t4').datebox('getValue');
 		var billNo = $('#cbi_billno').html().replace(/请款单号：/,'');
-		var data = {"type":2,"fkx":fkx,"invoiceNo":invoiceNo,"money":money,"invoiceTitle":invoiceTitle,"createDate":createDate,"billNo":billNo};
+		var data = {"type":2,"fkxId":fkxId,"invoiceNo":invoiceNo,"money":money,"invoiceTitle":invoiceTitle,"createDate":createDate,"billNo":billNo};
 		if(invoiceNo && money && createDate){
 			$.post("${base}/invoice/saveInvoice", data, function(result){
 				if (result.code != 12000) {

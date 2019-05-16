@@ -48,7 +48,7 @@ public class Invoice extends BaseInvoice<Invoice> {
 			String tabName = type == 1 ? "disp_bills" : "cyc_bills";
 			boolean result = false;
 			try {
-				Integer fkxId = c.getParaToInt("fkx");
+				Integer fkxId = c.getParaToInt("fkxId");
 				if(fkxId == null) {
 					return new ReturnMsg("14000", "请您选择付款项！");
 				}
@@ -80,6 +80,7 @@ public class Invoice extends BaseInvoice<Invoice> {
 				Invoice invoice = new Invoice();
 				invoice.set("type", type)
 					.set("bill_no", billNo)
+					.set("c_id", fkxId)
 					.set("invoice_no", invoiceNo)
 					.set("money", itemMoney)
 					.set("classify", classify)
