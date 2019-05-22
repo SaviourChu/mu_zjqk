@@ -356,9 +356,10 @@ public class CycBills extends BaseCycBills<CycBills> {
 	
 	private String cycFeesCount(Controller c, StringBuilder sqlExceptSelect, List<Object> params) {
 		String classify = ShiroUtils.getClassify();
-		String select = "SELECT t.*,(t.totalMoney-t.actualMoney) nopayMoney ";
+		String select = "SELECT t.*,(t.totalMoney-t.actualMoney) nopayMoney,IFNULL((t.actualMoney-t.invoiceMoney),0) noinvoiceMoney ";
 		sqlExceptSelect.append("FROM (SELECT cb.id,cb.ym,cb.create_time createTime,cb.bill_no billNo,s.`name` sName,a.`name` aName,"
 				+ "(SELECT SUM(money) FROM cyc_details cd WHERE cd.flag=1 AND type='" + classify + "' AND cb.bill_no=cd.bill_no) totalMoney,"
+				+ "(SELECT SUM(money) FROM invoice i WHERE i.flag=1 AND classify='" + classify + "' AND cb.bill_no=i.bill_no) invoiceMoney,"
 				+ "cb.pay_date payDate,cb.actual_date actualDate,cb.actual_money actualMoney,p.`name` pName,p.account,p.bank,"
 				+ Tools.statusConvertor() + "FROM cyc_bills cb LEFT JOIN store s ON cb.s_id=s.id "
 				+ "LEFT JOIN account a ON cb.a_id = a.id LEFT JOIN pay_account p ON cb.p_id=p.id WHERE cb.flag=1 AND lb='" + classify + "' ");
@@ -416,7 +417,6 @@ public class CycBills extends BaseCycBills<CycBills> {
 		sqlExceptSelect.append("ORDER BY cb.bill_no");
 		return select;
 	}
-	
 	
 	public CycBills cycBillById(String id) {
 		String sql = "SELECT cb.id,cb.create_time createTime,cb.bill_no billNo,s.`name` sName,a.`name` aName,s.brand,"

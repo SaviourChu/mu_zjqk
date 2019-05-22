@@ -35,7 +35,7 @@
 		data-options="toolbar:'#cyc_fees_toolbar',pagination:true,rownumbers:true,fitColumns:true,url:'${base}/cycBills/cycFeesCount'" >
 		<thead>
 			<tr>
-				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<!-- <th data-options="field:'id',width:120,hidden:true">编号</th>
 				<th data-options="field:'createTime',width:'7%'">制单日期</th>
 				<th data-options="field:'billNo',width:'10%'">单号</th>
 				<th data-options="field:'sName',width:'10%'">店铺名称</th>
@@ -47,7 +47,23 @@
 				<th data-options="field:'account',width:'8%'">付款账号</th>
 				<th data-options="field:'bank',width:'6%'">开户行</th>
 				<th data-options="field:'nopayMoney',width:'8%',formatter:gshje">实际未付金额</th>
-				<th data-options="field:'status',width:'8%',formatter:csFlag">状态</th>
+				<th data-options="field:'status',width:'8%',formatter:csFlag">状态</th> -->
+				
+				<th data-options="field:'id',width:120,hidden:true">编号</th>
+				<th data-options="field:'createTime',width:'6%'">制单日期</th>
+				<th data-options="field:'billNo',width:'9%'">单号</th>
+				<th data-options="field:'sName',width:'10%'">店铺名称</th>
+				<th data-options="field:'totalMoney',width:'6%',formatter:gshje">请款金额</th>
+				<th data-options="field:'actualMoney',width:'6%',formatter:gshje">支付金额</th>
+				<th data-options="field:'nopayMoney',width:'6%',formatter:gshje">未付金额</th>
+				<th data-options="field:'invoiceMoney',width:'6%',formatter:gshje">发票金额</th>
+				<th data-options="field:'noinvoiceMoney',width:'6%',formatter:gshje">未开发票</th>
+				<th data-options="field:'status',width:'7%',formatter:csFlag">状态</th>
+				<th data-options="field:'payDate',width:'6%'">申请日期</th>
+				<th data-options="field:'actualDate',width:'6%'">支付日期</th>
+				<th data-options="field:'pName',width:'16%'">付款账户</th>
+				<th data-options="field:'account',width:'12%'">付款账号</th>
+				<th data-options="field:'bank',width:'16%'">开户行</th>
 			</tr>
 		</thead>
 	</table>

@@ -103,8 +103,8 @@ public class CycBillsController extends Controller {
 	 */
 	public void exCycFeesCount() throws IOException {
 		String sheetName = "周期性费用统计表";
-		String[] titles = { "定义年月","制单日期","单号","店铺名称","请款金额","申请支付日期","实际支付金额","实际支付日期","付款账户","付款账号","开户行","实际未付金额","状态" };
-		String[] columns = { "ym","createTime","billNo","sName","totalMoney","payDate","actualMoney","actualDate","pName","account","bank","nopayMoney","status"  };
+		String[] titles = { "定义年月","制单日期","单号","店铺名称","请款金额","实际支付金额","实际未付金额","发票金额","申请支付日期","实际支付日期","付款账户","付款账号","开户行","状态" };
+		String[] columns = { "ym","createTime","billNo","sName","totalMoney","actualMoney","nopayMoney","invoiceMoney","payDate","actualDate","pName","account","bank","status"  };
 		Workbook workbook = ExcelUtil.buildWorkbookCustomizable(sheetName, Arrays.asList(titles),
 				Arrays.asList(columns), CycBills.dao.exCycFeesCount(this));
 		try {
