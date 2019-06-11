@@ -122,7 +122,8 @@ public class DispBillsController extends Controller {
 		try {
 			ExcelUtil.exportDatasExcel(sheetName, workbook, getResponse());
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("一次性费用统计表导出报错");
 		}
 		renderNull();
 	}
@@ -139,7 +140,8 @@ public class DispBillsController extends Controller {
 		try {
 			ExcelUtil.exportDatasExcel(sheetName, workbook, getResponse());
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("一次性费用明细表导出报错");
 		}
 		renderNull();
 	}
@@ -156,7 +158,8 @@ public class DispBillsController extends Controller {
 		try {
 			ExcelUtil.exportDatasExcel(sheetName, workbook, getResponse());
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("一次性费用发票统计表导出报错");
 		}
 		renderNull();
 	}
@@ -173,7 +176,8 @@ public class DispBillsController extends Controller {
 		try {
 			ExcelUtil.exportDatasExcel(sheetName, workbook, getResponse());
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("可回收资金管理表导出报错");
 		}
 		renderNull();
 	}

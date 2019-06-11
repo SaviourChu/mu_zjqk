@@ -110,13 +110,14 @@ public class CycBillsController extends Controller {
 		try {
 			ExcelUtil.exportDatasExcel(sheetName, workbook, getResponse());
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("周期性费用统计表导出报错");
 		}
 		renderNull();
 	}
 	
 	/*
-	 * 周期性费用统计表导出
+	 * 周期性费用明细表导出
 	 */
 	public void exCycDetails() throws IOException {
 		String sheetName = "周期性费用明细表";
@@ -127,7 +128,8 @@ public class CycBillsController extends Controller {
 		try {
 			ExcelUtil.exportDatasExcel(sheetName, workbook, getResponse());
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("周期性费用明细表导出报错");
 		}
 		renderNull();
 	}

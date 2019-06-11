@@ -24,7 +24,7 @@ public class Invoice extends BaseInvoice<Invoice> {
 	public static final Invoice dao = new Invoice();
 	
 	public Page<Invoice> page(Controller c){
-		String select = "SELECT id,bill_no billNo,invoice_no invoiceNo,money,invoice_title invoiceTitle,create_date createDate ";
+		String select = "SELECT id,bill_no billNo,fl,invoice_no invoiceNo,money,invoice_title invoiceTitle,create_date createDate ";
 		StringBuilder sqlExceptSelect = new StringBuilder();
 		List<Object> params = Lists.newArrayList();
 		sqlExceptSelect.append("FROM invoice WHERE flag=1 AND classify='"+ShiroUtils.getClassify()+"' "); 
@@ -57,6 +57,7 @@ public class Invoice extends BaseInvoice<Invoice> {
 				String invoiceTitle = c.getPara("invoiceTitle");
 				String createDate = c.getPara("createDate");
 				String billNo = c.getPara("billNo");
+				String fl = c.getPara("fl");
 				if(StringUtils.isAnyBlank(invoiceNo, createDate, billNo, money, invoiceTitle)){
 					return ReturnMsg.DATAERROR;
 				}
@@ -80,6 +81,7 @@ public class Invoice extends BaseInvoice<Invoice> {
 				Invoice invoice = new Invoice();
 				invoice.set("type", type)
 					.set("bill_no", billNo)
+					.set("fl", fl)
 					.set("c_id", fkxId)
 					.set("invoice_no", invoiceNo)
 					.set("money", itemMoney)
@@ -88,7 +90,8 @@ public class Invoice extends BaseInvoice<Invoice> {
 					.set("create_date", createDate);
 				result = invoice.save() && updateStatus(tabName, billNo, status, classify);
 			} catch (Exception e) {
-				e.printStackTrace();
+				//e.printStackTrace();
+				System.out.println("添加发票信息报错");
 			}
 			return result ? ReturnMsg.SUCCESS : ReturnMsg.ERROR;
 		}else{
@@ -113,6 +116,7 @@ public class Invoice extends BaseInvoice<Invoice> {
 			String tabName = type == 1 ? "disp_bills" : "cyc_bills";
 			try {
 				String invoiceNo = c.getPara("invoiceNo");
+				String fl = c.getPara("fl");
 				String money = c.getPara("money");
 				String invoiceTitle = c.getPara("invoiceTitle");
 				String createDate = c.getPara("createDate");
@@ -139,12 +143,14 @@ public class Invoice extends BaseInvoice<Invoice> {
 				Invoice invoice = new Invoice();
 				invoice.set("invoice_no", invoiceNo)
 					.set("money", itemMoney)
+					.set("fl", fl)
 					.set("classify", classify)
 					.set("invoice_title", invoiceTitle)
 					.set("create_date", createDate);
 				result = invoice.set("id", id).update() && updateStatus(tabName, billNo, status, classify);
 			} catch (Exception e) {
-				e.printStackTrace();
+				//e.printStackTrace();
+				System.out.println("修改发票信息报错");
 			}
 			return result ? ReturnMsg.SUCCESS : ReturnMsg.ERROR;
 		}else{
@@ -253,6 +259,7 @@ public class Invoice extends BaseInvoice<Invoice> {
 	public static void main(String[] args) {
 		Double d1 = 2000.0;
 		Double d2 = 2000.0;
+		
 		boolean equals = d1.equals(d2);
 		System.out.println(equals);
 		System.out.println(d1.compareTo(d2));

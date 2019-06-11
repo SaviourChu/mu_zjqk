@@ -162,8 +162,9 @@
 	data-options="modal:true,closed:true,minimizable:false" style="width:900px;top:60px;height:500px;">
 	<div id="cbi_search" class="easyui-panel" title="录入发票信息" data-options="cache:false" style="padding:5px;">
 		<div>
+			<!-- ,multiple:true -->
 			<label class="label-top">付款项:</label><input class="easyui-combobox" id="fkxs" name="fkxs" 
-				data-options="valueField:'id',textField:'name',panelHeight:'auto',editable:false,multiple:true,width:500"><br>
+				data-options="valueField:'id',textField:'name',panelHeight:'auto',editable:false,width:500"><br>
 			<label class="label-top">发票编号:</label><input class="easyui-textbox" type="text" id="t1" name="invoiceNo"/>&nbsp;&nbsp;
 			<label class="label-top">发票抬头:</label><input class="easyui-combobox" id="t3" name="invoiceTitle" 
 				data-options="url:'${base}/invoiceTitle/InvoiceTitlesInfo',valueField:'itName',textField:'itName',width:280"><br>
@@ -171,6 +172,15 @@
 				data-options="precision:2,min:0" id="t2" name="money"/>&nbsp;&nbsp;
 			<label class="label-top">开票日期:</label><input class="easyui-datebox" id="t4" name="createDate" 
 				data-options="editable:false"/>&nbsp;&nbsp;
+			<label class="label-top">发票类型:</label> 
+				<select class="easyui-combobox" id="t5" name="fl" 
+				data-options="editable:false,width:140,panelHeight:'auto'">
+					<option value="" selected="selected"></option>
+					<option value="普票">普票</option>
+					<option value="专票">专票</option>
+					<option value="收据">收据</option>
+					<option value="复印件">复印件</option>
+				</select>&nbsp;&nbsp;
 			<a href="#" class="easyui-linkbutton" onclick="cbi_add();" data-options="iconCls:'icon-add'">添加</a>&nbsp;&nbsp;
 			<a href="#" class="easyui-linkbutton" onclick="cbi_clean();" data-options="iconCls:'icon-undo'">清空条件</a>
 		</div>
@@ -186,6 +196,7 @@
 				<tr>
 					<th data-options="field:'id',width:120,hidden:true">编号</th>
 					<th data-options="field:'invoiceNo',width:'20%'">发票编号</th>
+					<th data-options="field:'fl',width:'15%'">发票类型</th>
 					<th data-options="field:'money',width:'12%'">发票金额</th>
 					<th data-options="field:'invoiceTitle',width:'30%'">发票抬头</th>
 					<th data-options="field:'createDate',width:'15%'">开票日期</th>
@@ -195,15 +206,24 @@
 	</div>
 </div>
 
-<div id="cbi_dlg" class="easyui-dialog" data-options="buttons:'#cbi_buttons',closed:true" style="width: 550px;height:300px;">
+<div id="cbi_dlg" class="easyui-dialog" data-options="buttons:'#cbi_buttons',closed:true" style="width: 550px;height:330px;">
 	<form id="cbi_form" method="post" enctype="multipart/form-data">
 		<div class="p-dlg-div">
 			<div style="margin: 40px 30px;text-align:center;">
 				<input type="hidden" id="cbiId" name="id"></input> 
 				<p><span class="lwcbf">发票编号:</span><input class="easyui-textbox" type="text" name="invoiceNo"/><br>
-				<p><span class="lwcbf">支付金额:</span><input class="easyui-numberbox" data-options="precision:2,min:0" name="money"/><br>
+				<p><span class="label-top">发票类型:</span>
+					<select class="easyui-combobox" name="fl" 
+						data-options="editable:false,width:130,panelHeight:'auto'">
+						<option value="" selected="selected"></option>
+						<option value="普票">普票</option>
+						<option value="专票">专票</option>
+						<option value="收据">收据</option>
+						<option value="复印件">复印件</option>
+					</select><br>
+				<p><span class="lwcbf">发票金额:</span><input class="easyui-numberbox" data-options="precision:2,min:0" name="money"/><br>
 				<p><span class="lwcbf">发票抬头:</span><input class="easyui-combobox" name="invoiceTitle" 
-					data-options="url:'${base}/invoiceTitle/InvoiceTitlesInfo',valueField:'itName',textField:'itName'">&nbsp;&nbsp;
+					data-options="url:'${base}/invoiceTitle/InvoiceTitlesInfo',valueField:'itName',textField:'itName',width:260">&nbsp;&nbsp;
 				<p><span class="lwcbf">开票日期:</span><input class="easyui-datebox" name="createDate" data-options="editable:false"/><br>
 			</div>
 		</div>
@@ -509,9 +529,10 @@
 		}
 		var invoiceTitle = $('#t3').combobox('getValue');
 		var createDate = $('#t4').datebox('getValue');
+		var fl = $('#t5').combobox('getValue');
 		var billNo = $('#cbi_billno').html().replace(/请款单号：/,'');
-		var data = {"type":2,"fkxId":fkxId,"invoiceNo":invoiceNo,"money":money,"invoiceTitle":invoiceTitle,"createDate":createDate,"billNo":billNo};
-		if(invoiceNo && money && createDate){
+		var data = {"type":2,"fkxId":fkxId,"fl":fl,"invoiceNo":invoiceNo,"money":money,"invoiceTitle":invoiceTitle,"createDate":createDate,"billNo":billNo};
+		if(invoiceNo && money && createDate && fl){
 			$.post("${base}/invoice/saveInvoice", data, function(result){
 				if (result.code != 12000) {
 					promptMsgParam(result.msg);
@@ -523,6 +544,8 @@
 					cinvoiceTotalMoney(billNo);
 				}
 			});
+		}else{
+			promptMsgParam("请将信息填写完整！");
 		}
 	}
 	//刷新

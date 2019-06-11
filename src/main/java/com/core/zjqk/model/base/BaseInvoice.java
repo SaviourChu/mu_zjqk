@@ -85,4 +85,12 @@ public abstract class BaseInvoice<M extends BaseInvoice<M>> extends Model<M> imp
 	public java.lang.Integer getCId() {
 		return get("c_id");
 	}
+	
+	public void setFl(java.lang.String fl) {
+		set("fl", fl);
+	}
+	
+	public java.lang.String getFl() {
+		return get("fl");
+	}
 }
